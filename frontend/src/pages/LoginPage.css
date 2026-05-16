@@ -1,0 +1,190 @@
+.login-container {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-main);
+    transition: background-color 0.3s ease;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 450px;
+    padding: 3rem;
+    z-index: 10;
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.logo-section {
+    margin-bottom: 2.5rem;
+}
+
+.logo-circle {
+    width: 72px;
+    height: 72px;
+    background: white;
+    border-radius: 1.25rem;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(99, 102, 241, 0.2);
+    overflow: hidden;
+}
+
+.title-group h1 {
+    font-size: 2.25rem;
+    background: var(--grad-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+}
+
+.subtitle {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    font-weight: 600;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.form-group-auth {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.875rem;
+    padding: 0 1.25rem;
+    transition: var(--transition);
+}
+
+.form-group-auth:focus-within {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.form-group-auth svg {
+    color: var(--text-dim);
+    min-width: 18px;
+}
+
+.form-group-auth input, 
+.form-group-auth select {
+    flex: 1;
+    background: transparent !important;
+    border: none !important;
+    padding: 1rem 0;
+    color: white;
+    outline: none !important;
+    font-size: 0.95rem;
+    box-shadow: none !important;
+}
+
+/* Fix for Select styling */
+.form-group-auth select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+    padding-right: 2rem;
+}
+
+.form-group-auth select option {
+    background-color: var(--bg-card);
+    color: white;
+    padding: 10px;
+}
+
+.logo-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.google-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: #ffffff;
+    color: #1f2937;
+    padding: 0.875rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: var(--transition);
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+}
+
+[data-theme='light'] .google-btn {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.google-btn:hover {
+    background: #f3f4f6;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.google-btn img {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.footer-text {
+    margin-top: 1.5rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+.footer-text a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 700;
+    margin-left: 0.25rem;
+}
+
+.bg-blobs {
+    display: none; /* Temporarily hide to see if it causes issues */
+}

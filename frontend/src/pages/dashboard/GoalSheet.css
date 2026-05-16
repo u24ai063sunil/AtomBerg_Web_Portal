@@ -1,0 +1,145 @@
+.goal-sheet-container {
+    max-width: 1000px;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.draft { background: var(--bg-input); color: var(--text-dim); }
+.status-badge.submitted { background: rgba(59, 130, 246, 0.2); color: var(--info); }
+.status-badge.approved { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+.status-badge.returned { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+
+.header-btns {
+    display: flex;
+    gap: 1rem;
+}
+
+.weightage-summary {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+}
+
+.weight-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.weight-bar-bg {
+    height: 10px;
+    background: var(--bg-input);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.weight-bar-fill {
+    height: 100%;
+    transition: width 0.5s ease-out;
+}
+
+.hint {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+}
+
+.goals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.goal-card {
+    padding: 1.5rem;
+}
+
+.goal-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.75rem;
+}
+
+.goal-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.span-2 {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.add-goal-btn {
+    width: 100%;
+    padding: 1.5rem;
+    border: 2px dashed var(--border);
+    background: transparent;
+    border-radius: 1.25rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-weight: 600;
+}
+
+.add-goal-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.delete-btn {
+    background: transparent;
+    color: var(--text-dim);
+}
+
+.delete-btn:hover {
+    color: var(--error);
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.alert.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.alert.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.text-success { color: var(--success); }
+.text-error { color: var(--error); }
