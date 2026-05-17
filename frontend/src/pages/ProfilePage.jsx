@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { User, Mail, Camera, Lock, Save, Briefcase, Building } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import Sidebar from '../components/Sidebar';
 import Avatar from '../components/Avatar';
 import './ProfilePage.css';
 
@@ -16,7 +15,8 @@ const ProfilePage = () => {
         designation: '',
         department: '',
         picture: '',
-        managerId: ''
+        managerId: '',
+        role: ''
     });
     const [managers, setManagers] = useState([]);
     const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
@@ -47,7 +47,8 @@ const ProfilePage = () => {
                 designation: user.designation || '',
                 department: user.department || '',
                 picture: user.picture || '',
-                managerId: user.managerId || ''
+                managerId: user.managerId || '',
+                role: user.role || 'employee'
             });
         }
     }, [user]);
@@ -106,11 +107,8 @@ const ProfilePage = () => {
     };
 
     return (
-        <div className="dashboard-layout">
-            <Sidebar />
-            <main className="dashboard-main">
-                <div className="profile-container animate-fade-in">
-                    <div className="page-header">
+        <div className="profile-container animate-fade-in" style={{padding: '2rem'}}>
+            <div className="page-header">
                         <h1>User Profile</h1>
                         <p>Manage your account settings and preferences.</p>
                     </div>
@@ -184,22 +182,39 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
-                                <div className="form-group">
-                                    <label>Reporting Manager</label>
-                                    <div className="input-with-icon">
-                                        <User size={18} />
-                                        <select 
-                                            value={profile.managerId} 
-                                            onChange={(e) => setProfile({...profile, managerId: e.target.value})}
-                                            style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0' }}
-                                        >
-                                            <option value="" style={{ background: 'var(--bg-card)' }}>Select a Manager</option>
-                                            {managers.map(m => (
-                                                <option key={m._id} value={m._id} style={{ background: 'var(--bg-card)' }}>
-                                                    {m.name} ({m.email})
-                                                </option>
-                                            ))}
-                                        </select>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Reporting Manager</label>
+                                        <div className="input-with-icon">
+                                            <User size={18} />
+                                            <select 
+                                                value={profile.managerId} 
+                                                onChange={(e) => setProfile({...profile, managerId: e.target.value})}
+                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0' }}
+                                            >
+                                                <option value="" style={{ background: 'var(--bg-card)' }}>Select a Manager</option>
+                                                {managers.map(m => (
+                                                    <option key={m._id} value={m._id} style={{ background: 'var(--bg-card)' }}>
+                                                        {m.name} ({m.email})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>System Role</label>
+                                        <div className="input-with-icon">
+                                            <Briefcase size={18} />
+                                            <select 
+                                                value={profile.role} 
+                                                onChange={(e) => setProfile({...profile, role: e.target.value})}
+                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0' }}
+                                            >
+                                                <option value="employee" style={{ background: 'var(--bg-card)' }}>Employee</option>
+                                                <option value="manager" style={{ background: 'var(--bg-card)' }}>Manager</option>
+                                                <option value="admin" style={{ background: 'var(--bg-card)' }}>HR / Admin</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -243,9 +258,7 @@ const ProfilePage = () => {
                                 </button>
                             </form>
                         </div>
-                    </div>
                 </div>
-            </main>
         </div>
     );
 };

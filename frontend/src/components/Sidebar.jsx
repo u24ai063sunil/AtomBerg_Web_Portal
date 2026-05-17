@@ -28,11 +28,13 @@ const Sidebar = () => {
         { name: 'Quarterly Check-ins', icon: <CheckSquare size={20} />, path: '/dashboard/check-ins' },
     ];
 
-    if (user?.role === 'manager' || user?.role === 'admin') {
+    const userRole = user?.role?.toUpperCase() || 'EMPLOYEE';
+
+    if (userRole === 'MANAGER' || userRole === 'ADMIN') {
         navItems.push({ name: 'Team Review', icon: <Users size={20} />, path: '/dashboard/team' });
     }
 
-    if (user?.role === 'admin') {
+    if (userRole === 'ADMIN') {
         navItems.push({ name: 'Admin Console', icon: <Settings size={20} />, path: '/dashboard/admin' });
         navItems.push({ name: 'Reports', icon: <BarChart3 size={20} />, path: '/dashboard/reports' });
     }
@@ -47,7 +49,7 @@ const Sidebar = () => {
                 </button>
             </div>
 
-            <Link to="/profile" className="user-profile-summary">
+            <Link to="/dashboard/profile" className="user-profile-summary">
                 <Avatar src={user?.picture} name={user?.name} size={44} />
                 <div className="user-info">
                     <span className="user-name">{user?.name}</span>

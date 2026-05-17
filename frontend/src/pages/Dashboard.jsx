@@ -1,37 +1,50 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
+
+// Original stubs - we keep Overview for the welcome page
 import Overview from './dashboard/Overview';
-import GoalSheet from './dashboard/GoalSheet';
-import CheckIns from './dashboard/CheckIns';
-import TeamReview from './dashboard/TeamReview';
-import AdminConsole from './dashboard/AdminConsole';
+
+// Our new highly detailed components
+import GoalSheetPage from './GoalSheetPage';
+import EmployeeCheckIn from './EmployeeCheckIn';
+import ManagerDashboard from './ManagerDashboard';
+import ManagerApprovalPage from './ManagerApprovalPage';
+import AdminOverview from './AdminOverview';
+import AnalyticsDashboard from './AnalyticsDashboard';
+import ProfilePage from './ProfilePage';
+
 import './Dashboard.css';
+
+const RoleRoute = ({ allowedRoles, children }) => {
+    const { user } = useAuth();
+    const role = user?.role?.toUpperCase() || 'EMPLOYEE';
+    if (!allowedRoles.includes(role)) {
+        return <Navigate to="/dashboard" replace />;
+    }
+    return children;
+};
 
 const Dashboard = () => {
     return (
         <div className="dashboard-layout">
             <Sidebar />
             <main className="dashboard-main">
-                <header className="dashboard-header">
-                    <div className="header-search">
-                        {/* Placeholder for search or breadcrumbs */}
-                    </div>
-                    <div className="header-actions">
-                        <div className="notification-bell">
-                            {/* Icon here */}
-                        </div>
-                    </div>
+                {/* Optional Header - usually handled internally by the new pages, but we can keep a simple top bar if needed */}
+                <header className="dashboard-header" style={{display:'none'}}>
                 </header>
                 
-                <div className="dashboard-content">
+                <div className="dashboard-content" style={{padding: 0, height: '100vh', overflowY: 'auto'}}>
                     <Routes>
                         <Route path="/" element={<Overview />} />
-                        <Route path="/goals" element={<GoalSheet />} />
-                        <Route path="/check-ins" element={<CheckIns />} />
-                        <Route path="/team" element={<TeamReview />} />
-                        <Route path="/admin" element={<AdminConsole />} />
-                        {/* More routes as needed */}
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/goals" element={<GoalSheetPage />} />
+                        <Route path="/check-ins" element={<EmployeeCheckIn />} />
+                        <Route path="/team" element={<RoleRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerDashboard /></RoleRoute>} />
+                        <Route path="/manager/approve/:sheetId" element={<RoleRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerApprovalPage /></RoleRoute>} />
+                        <Route path="/admin" element={<RoleRoute allowedRoles={['ADMIN']}><AdminOverview /></RoleRoute>} />
+                        <Route path="/reports" element={<RoleRoute allowedRoles={['ADMIN']}><AnalyticsDashboard /></RoleRoute>} />
                     </Routes>
                 </div>
             </main>

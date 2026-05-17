@@ -44,7 +44,7 @@ const GoalSheet = () => {
         setGoals([...goals, {
             title: '',
             description: '',
-            thrustArea: 'Sales',
+            thrustArea: 'R&D / BLDC Innovation',
             uom: 'numeric',
             target: '',
             weightage: 10
@@ -147,17 +147,17 @@ const GoalSheet = () => {
                         
                         <div className="goal-form-grid">
                             <div className="form-group">
-                                <label>Thrust Area</label>
+                                <label>Atomberg Thrust Area</label>
                                 <select 
                                     disabled={isLocked}
                                     value={goal.thrustArea} 
                                     onChange={(e) => updateGoal(index, 'thrustArea', e.target.value)}
                                 >
-                                    <option value="Sales">Sales</option>
-                                    <option value="Operations">Operations</option>
-                                    <option value="Innovation">Innovation</option>
-                                    <option value="Customer Success">Customer Success</option>
-                                    <option value="People & Culture">People & Culture</option>
+                                    <option value="R&D / BLDC Innovation">R&D / BLDC Innovation</option>
+                                    <option value="Smart Appliances & IoT">Smart Appliances & IoT</option>
+                                    <option value="Supply Chain & Manufacturing">Supply Chain & Manufacturing</option>
+                                    <option value="D2C Sales & Marketing">D2C Sales & Marketing</option>
+                                    <option value="Customer Experience & Support">Customer Experience & Support</option>
                                 </select>
                             </div>
                             

@@ -1,0 +1,168 @@
+/* AnalyticsDashboard.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+
+
+.analytics-container {
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  background: var(--bg-main);
+  color: var(--text-main);
+  padding: 2rem;
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.analytics-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.role-tabs {
+  display: flex;
+  background: var(--bg-card);
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  gap: 0.5rem;
+}
+
+.role-tab {
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.role-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.time-selector {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.chart-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+.chart-grid.large-first {
+  grid-template-columns: 2fr 1fr;
+}
+
+.chart-panel {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.05));
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.chart-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chart-panel-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.export-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.export-btn:hover { background: var(--bg-input); }
+
+/* Custom Heatmap Grid */
+.heatmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+.heatmap-row {
+  display: flex;
+  gap: 2px;
+}
+.heatmap-cell {
+  flex: 1;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.1s;
+}
+.heatmap-cell:hover {
+  transform: scale(1.1);
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+.heatmap-label { width: 120px; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; color: var(--text-main); }
+
+/* Leaderboard Table */
+.leaderboard { width: 100%; border-collapse: collapse; text-align: left; }
+.leaderboard th { padding: 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 600; font-size: 0.875rem; cursor: pointer; }
+.leaderboard td { padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+
+/* Stats Panel */
+.stats-panel {
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.stat-item {
+  display: flex; justify-content: space-between; padding: 1rem; background: rgba(79, 70, 229, 0.05); border-radius: 8px; border: 1px solid rgba(79, 70, 229, 0.1);
+}
+.stat-item .label { color: var(--text-muted); font-size: 0.875rem; font-weight: 600; }
+.stat-item .val { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+
+/* Skeleton */
+.skeleton-box {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+  width: 100%; height: 250px;
+}
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+/* Sparkline Grid */
+.spark-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;
+}
+.spark-card {
+  padding: 1rem; border: 1px solid var(--border); border-radius: 8px; text-align: center;
+}

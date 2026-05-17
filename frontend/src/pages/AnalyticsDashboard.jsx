@@ -1,0 +1,338 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, 
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart
+} from 'recharts';
+import './AnalyticsDashboard.css';
+
+// --- MOCK DATA ---
+const trendData = [
+  { name: 'Q1', planned: 25, actual: 28 },
+  { name: 'Q2', planned: 50, actual: 45 },
+  { name: 'Q3', planned: 75, actual: 80 },
+  { name: 'Q4', planned: 100, actual: null },
+];
+
+const goalScoreData = [
+  { name: 'Goal 1', score: 110, weightage: 30, uom: 'MIN', fill: '#3b82f6' },
+  { name: 'Goal 2', score: 85, weightage: 40, uom: 'MAX', fill: '#10b981' },
+  { name: 'Goal 3', score: 50, weightage: 20, uom: 'TIMELINE', fill: '#8b5cf6' },
+  { name: 'Goal 4', score: 100, weightage: 10, uom: 'ZERO', fill: '#f59e0b' },
+];
+
+const qoqData = [
+  { name: 'Q1', current: 85, previous: 70 },
+  { name: 'Q2', current: 90, previous: 75 },
+  { name: 'Q3', current: 88, previous: 80 },
+  { name: 'Q4', current: null, previous: 85 },
+];
+
+const thrustAreaData = [
+  { name: 'Sales & Rev', value: 400, color: '#4f46e5' },
+  { name: 'Ops Efficiency', value: 300, color: '#10b981' },
+  { name: 'Quality', value: 300, color: '#f59e0b' },
+  { name: 'Innovation', value: 200, color: '#ec4899' },
+];
+
+const uomData = [
+  { name: 'Min', value: 50 }, { name: 'Max', value: 30 }, { name: 'Timeline', value: 15 }, { name: 'Zero', value: 5 }
+];
+const UOM_COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'];
+
+const teamHeatmapData = [
+  { name: 'Alice', scores: [90, 110, 80, 100, 75] },
+  { name: 'Bob', scores: [60, 40, 50, 80, 90] },
+  { name: 'Charlie', scores: [120, 100, 95, 110, 105] }
+];
+
+const getHeatmapColor = (score) => {
+  if (score >= 100) return `rgba(16, 185, 129, 1)`; // Green
+  if (score >= 80) return `rgba(16, 185, 129, 0.6)`;
+  if (score >= 50) return `rgba(245, 158, 11, 0.8)`; // Yellow
+  return `rgba(239, 68, 68, 0.8)`; // Red
+};
+
+
+const AnalyticsDashboard = () => {
+  const [roleView, setRoleView] = useState('EMPLOYEE');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate data fetch
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, [roleView]);
+
+  const handleExport = (chartName) => {
+    alert(`Exporting ${chartName} as PNG...`);
+  };
+
+  const renderIndividualView = () => (
+    <>
+      <div className="chart-grid large-first">
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Goal Achievement Trend</h3>
+            <button className="export-btn" onClick={() => handleExport('TrendLine')}>Export PNG</button>
+          </div>
+          <div style={{height: 300, width: '100%'}}>
+            <ResponsiveContainer>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-border)" />
+                <XAxis dataKey="name" stroke="var(--text-muted)" />
+                <YAxis domain={[0, 120]} stroke="var(--text-muted)" />
+                <Tooltip contentStyle={{background: 'var(--chart-bg)', border: '1px solid var(--chart-border)', borderRadius: '8px'}} />
+                <Legend />
+                <Line type="monotone" dataKey="planned" stroke="#9ca3af" strokeWidth={2} strokeDasharray="5 5" name="Planned Trajectory" />
+                <Line type="monotone" dataKey="actual" stroke="#4f46e5" strokeWidth={3} activeDot={{ r: 8 }} name="Actual Achieved" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Weighted Score</h3>
+            <button className="export-btn">Export PNG</button>
+          </div>
+          <div style={{height: 300, width: '100%', position: 'relative'}}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={goalScoreData} dataKey="score" innerRadius={80} outerRadius={110} paddingAngle={5}>
+                  {goalScoreData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{position:'absolute', top:'50%', left:'50%', transform:'translate(-50%, -50%)', textAlign:'center'}}>
+              <div style={{fontSize:'2.5rem', fontWeight:800, color:'#4f46e5'}}>74%</div>
+              <div style={{fontSize:'0.875rem', color:'var(--text-muted)'}}>Overall</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="chart-grid">
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Goal Score Breakdown</h3>
+            <button className="export-btn">Export PNG</button>
+          </div>
+          <div style={{height: 300, width: '100%'}}>
+            <ResponsiveContainer>
+              <BarChart data={goalScoreData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-border)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-muted)" />
+                <YAxis domain={[0, 150]} stroke="var(--text-muted)" />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="score" name="Score %" radius={[4, 4, 0, 0]}>
+                  {goalScoreData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>QoQ Comparison (Prev FY vs Current)</h3>
+            <button className="export-btn">Export PNG</button>
+          </div>
+          <div style={{height: 300, width: '100%'}}>
+            <ResponsiveContainer>
+              <BarChart data={qoqData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-border)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-muted)" />
+                <YAxis domain={[0, 120]} stroke="var(--text-muted)" />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="previous" fill="#9ca3af" name="Prev FY" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="current" fill="#10b981" name="Current FY" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  const renderTeamView = () => (
+    <>
+      <div className="chart-grid large-first">
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Team Heatmap (Goals vs Members)</h3>
+            <button className="export-btn">Export PNG</button>
+          </div>
+          <div className="heatmap-grid">
+            {teamHeatmapData.map(row => (
+              <div className="heatmap-row" key={row.name}>
+                <div className="heatmap-label">{row.name}</div>
+                {row.scores.map((score, i) => (
+                  <div 
+                    key={i} 
+                    className="heatmap-cell" 
+                    style={{backgroundColor: getHeatmapColor(score)}}
+                    title={`${row.name} - Goal ${i+1}: ${score}%`}
+                    onClick={() => alert(`Opening detail for ${row.name}`)}
+                  >
+                    {score}%
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div style={{display:'flex', gap:'1rem', marginTop:'1.5rem', fontSize:'0.75rem', color:'var(--text-muted)'}}>
+            <div style={{display:'flex', alignItems:'center', gap:'0.25rem'}}><div style={{width:12, height:12, background:'rgba(16, 185, 129, 1)'}}></div> &ge;100%</div>
+            <div style={{display:'flex', alignItems:'center', gap:'0.25rem'}}><div style={{width:12, height:12, background:'rgba(16, 185, 129, 0.6)'}}></div> 80-99%</div>
+            <div style={{display:'flex', alignItems:'center', gap:'0.25rem'}}><div style={{width:12, height:12, background:'rgba(245, 158, 11, 0.8)'}}></div> 50-79%</div>
+            <div style={{display:'flex', alignItems:'center', gap:'0.25rem'}}><div style={{width:12, height:12, background:'rgba(239, 68, 68, 0.8)'}}></div> &lt;50%</div>
+          </div>
+        </div>
+
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Manager Effectiveness</h3>
+          </div>
+          <div className="stats-panel">
+            <div className="stat-item">
+              <span className="label">Check-in Completion</span>
+              <span className="val" style={{color:'#10b981'}}>100% <span style={{fontSize:'0.75rem', color:'var(--text-muted)'}}>(Top 10%)</span></span>
+            </div>
+            <div className="stat-item">
+              <span className="label">Avg Time to Approve</span>
+              <span className="val">2.4 days</span>
+            </div>
+            <div className="stat-item">
+              <span className="label">Team Avg Score</span>
+              <span className="val">84% <span style={{fontSize:'0.75rem', color:'var(--text-muted)'}}>vs Dept 76%</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="chart-panel" style={{marginTop:'1.5rem'}}>
+        <div className="chart-panel-header">
+          <h3>Individual Trajectories (Sparklines)</h3>
+        </div>
+        <div className="spark-grid">
+          {teamHeatmapData.map(row => (
+            <div className="spark-card" key={row.name}>
+              <div style={{fontWeight:600, marginBottom:'0.5rem'}}>{row.name}</div>
+              <div style={{height: 60, width: '100%'}}>
+                <ResponsiveContainer>
+                  <LineChart data={[{v:70},{v:75},{v:85},{v:90}]}>
+                    <Line type="monotone" dataKey="v" stroke="#4f46e5" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+
+  const renderOrgView = () => (
+    <>
+      <div className="chart-grid">
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Thrust Area Distribution</h3>
+            <button className="export-btn">Export PNG</button>
+          </div>
+          <div style={{height: 300, width: '100%'}}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={thrustAreaData} dataKey="value" cx="50%" cy="50%" outerRadius={100} label>
+                  {thrustAreaData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>UoM Distribution</h3>
+            <button className="export-btn">Export PNG</button>
+          </div>
+          <div style={{height: 300, width: '100%'}}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={uomData} dataKey="value" innerRadius={60} outerRadius={100} paddingAngle={2}>
+                  {uomData.map((entry, index) => <Cell key={`cell-${index}`} fill={UOM_COLORS[index % UOM_COLORS.length]} />)}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      <div className="chart-panel" style={{marginTop:'1.5rem'}}>
+        <div className="chart-panel-header">
+          <h3>Manager Effectiveness Leaderboard</h3>
+        </div>
+        <div style={{overflowX: 'auto'}}>
+          <table className="leaderboard">
+            <thead>
+              <tr>
+                <th>Manager Name ↕</th>
+                <th>Approval Speed (Avg Days) ↕</th>
+                <th>Team Check-in Rate ↕</th>
+                <th>Team Avg Score ↕</th>
+                <th># Escalations ↕</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Sarah Connor</td><td>1.2</td><td>100%</td><td>92%</td><td>0</td></tr>
+              <tr><td>John Smith</td><td>3.5</td><td>85%</td><td>78%</td><td>2</td></tr>
+              <tr><td>Alice Doe</td><td>2.1</td><td>90%</td><td>84%</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="analytics-container">
+      <div className="analytics-header">
+        <h1>Analytics Dashboard</h1>
+        <div style={{display:'flex', gap:'1rem', alignItems:'center'}}>
+          <select className="time-selector">
+            <option>This Cycle (FY 2025-26)</option>
+            <option>All Time</option>
+          </select>
+          <div className="role-tabs">
+            <button className={`role-tab ${roleView === 'EMPLOYEE' ? 'active' : ''}`} onClick={() => setRoleView('EMPLOYEE')}>Individual</button>
+            <button className={`role-tab ${roleView === 'MANAGER' ? 'active' : ''}`} onClick={() => setRoleView('MANAGER')}>Team</button>
+            <button className={`role-tab ${roleView === 'ADMIN' ? 'active' : ''}`} onClick={() => setRoleView('ADMIN')}>Organization</button>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="chart-grid">
+          <div className="skeleton-box"></div>
+          <div className="skeleton-box"></div>
+          <div className="skeleton-box"></div>
+        </div>
+      ) : (
+        <>
+          {roleView === 'EMPLOYEE' && renderIndividualView()}
+          {roleView === 'MANAGER' && renderTeamView()}
+          {roleView === 'ADMIN' && renderOrgView()}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default AnalyticsDashboard;
