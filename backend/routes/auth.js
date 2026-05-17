@@ -140,12 +140,26 @@ router.get('/google/callback',
 router.patch('/profile', authenticateJWT, async (req, res) => {
     try {
         const { name, designation, department, managerId, role } = req.body;
-        const updatedRole = role ? role.toUpperCase() : undefined;
         const updateData = { name, designation, department };
+        
+        // Prevent non-admins from changing their role or reporting manager
+        if (req.user.role !== 'ADMIN') {
+            if (role && role.toUpperCase() !== req.user.role) {
+                return res.status(403).json({ message: 'Only Admins can change user roles' });
+            }
+            const currentUser = await User.findById(req.user._id);
+            if (managerId !== undefined && currentUser.managerId && currentUser.managerId.toString() !== managerId) {
+                return res.status(403).json({ message: 'Only Admins can change reporting manager lines once assigned' });
+            }
+        }
+        
         if (managerId !== undefined) {
             updateData.managerId = managerId === "" ? null : managerId;
         }
-        if (updatedRole) updateData.role = updatedRole;
+        
+        if (role && req.user.role === 'ADMIN') {
+            updateData.role = role.toUpperCase();
+        }
         
         const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true });
         res.json(user);

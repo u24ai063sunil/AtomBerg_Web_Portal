@@ -111,8 +111,30 @@ router.get('/audit-log', async (req, res) => {
 // List all users with hierarchy
 router.get('/users', async (req, res) => {
     try {
-        const users = await User.find({}).select('-passwordHash');
+        const users = await User.find({}).populate('managerId', 'name email').select('-passwordHash');
         res.json({ success: true, data: users });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Update user role and manager (Admin only)
+router.put('/users/:userId', async (req, res) => {
+    try {
+        const { role, managerId } = req.body;
+        const updateData = {};
+        if (role) updateData.role = role.toUpperCase();
+        if (managerId !== undefined) {
+            updateData.managerId = managerId === "" ? null : managerId;
+        }
+        
+        const user = await User.findByIdAndUpdate(req.params.userId, updateData, { new: true })
+            .populate('managerId', 'name email')
+            .select('-passwordHash');
+            
+        if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+        
+        res.json({ success: true, data: user });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }

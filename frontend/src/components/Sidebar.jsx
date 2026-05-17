@@ -22,21 +22,28 @@ const Sidebar = () => {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
 
-    const navItems = [
-        { name: 'Overview', icon: <LayoutDashboard size={20} />, path: '/dashboard', end: true },
-        { name: 'My Goal Sheet', icon: <Target size={20} />, path: '/dashboard/goals' },
-        { name: 'Quarterly Check-ins', icon: <CheckSquare size={20} />, path: '/dashboard/check-ins' },
-    ];
-
+    const navItems = [];
     const userRole = user?.role?.toUpperCase() || 'EMPLOYEE';
 
-    if (userRole === 'MANAGER' || userRole === 'ADMIN') {
-        navItems.push({ name: 'Team Review', icon: <Users size={20} />, path: '/dashboard/team' });
-    }
-
     if (userRole === 'ADMIN') {
-        navItems.push({ name: 'Admin Console', icon: <Settings size={20} />, path: '/dashboard/admin' });
-        navItems.push({ name: 'Reports', icon: <BarChart3 size={20} />, path: '/dashboard/reports' });
+        navItems.push(
+            { name: 'Admin Console', icon: <Settings size={20} />, path: '/dashboard/admin' },
+            { name: 'Reports', icon: <BarChart3 size={20} />, path: '/dashboard/reports' }
+        );
+    } else if (userRole === 'MANAGER') {
+        navItems.push(
+            { name: 'Overview', icon: <LayoutDashboard size={20} />, path: '/dashboard', end: true },
+            { name: 'My Goal Sheet', icon: <Target size={20} />, path: '/dashboard/goals' },
+            { name: 'Quarterly Check-ins', icon: <CheckSquare size={20} />, path: '/dashboard/check-ins' },
+            { name: 'Team Review', icon: <Users size={20} />, path: '/dashboard/team' }
+        );
+    } else {
+        // EMPLOYEE
+        navItems.push(
+            { name: 'Overview', icon: <LayoutDashboard size={20} />, path: '/dashboard', end: true },
+            { name: 'My Goal Sheet', icon: <Target size={20} />, path: '/dashboard/goals' },
+            { name: 'Quarterly Check-ins', icon: <CheckSquare size={20} />, path: '/dashboard/check-ins' }
+        );
     }
 
     return (

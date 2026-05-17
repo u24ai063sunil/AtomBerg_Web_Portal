@@ -27,6 +27,9 @@ const RoleRoute = ({ allowedRoles, children }) => {
 };
 
 const Dashboard = () => {
+    const { user } = useAuth();
+    const role = user?.role?.toUpperCase() || 'EMPLOYEE';
+
     return (
         <div className="dashboard-layout">
             <Sidebar />
@@ -37,7 +40,7 @@ const Dashboard = () => {
                 
                 <div className="dashboard-content" style={{padding: 0, height: '100vh', overflowY: 'auto'}}>
                     <Routes>
-                        <Route path="/" element={<Overview />} />
+                        <Route path="/" element={role === 'ADMIN' ? <Navigate to="/dashboard/admin" replace /> : <Overview />} />
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/goals" element={<GoalSheetPage />} />
                         <Route path="/check-ins" element={<EmployeeCheckIn />} />

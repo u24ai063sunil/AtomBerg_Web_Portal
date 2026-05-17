@@ -184,13 +184,14 @@ const ProfilePage = () => {
 
                                 <div className="form-row">
                                     <div className="form-group">
-                                        <label>Reporting Manager</label>
+                                        <label>Reporting Manager {user?.role?.toUpperCase() !== 'ADMIN' && user?.managerId ? <span style={{fontSize:'0.75rem', color:'var(--text-muted)', fontWeight:'normal'}}>(Contact HR to change)</span> : ''}</label>
                                         <div className="input-with-icon">
                                             <User size={18} />
                                             <select 
                                                 value={profile.managerId} 
                                                 onChange={(e) => setProfile({...profile, managerId: e.target.value})}
-                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0' }}
+                                                disabled={user?.role?.toUpperCase() !== 'ADMIN' && user?.managerId}
+                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0', opacity: (user?.role?.toUpperCase() !== 'ADMIN' && user?.managerId) ? 0.6 : 1 }}
                                             >
                                                 <option value="" style={{ background: 'var(--bg-card)' }}>Select a Manager</option>
                                                 {managers.map(m => (
@@ -202,13 +203,14 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
                                     <div className="form-group">
-                                        <label>System Role</label>
+                                        <label>System Role {user?.role?.toUpperCase() !== 'ADMIN' ? <span style={{fontSize:'0.75rem', color:'var(--text-muted)', fontWeight:'normal'}}>(Contact HR to change)</span> : ''}</label>
                                         <div className="input-with-icon">
                                             <Briefcase size={18} />
                                             <select 
                                                 value={profile.role} 
                                                 onChange={(e) => setProfile({...profile, role: e.target.value})}
-                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0' }}
+                                                disabled={user?.role?.toUpperCase() !== 'ADMIN'}
+                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0', opacity: user?.role?.toUpperCase() !== 'ADMIN' ? 0.6 : 1 }}
                                             >
                                                 <option value="employee" style={{ background: 'var(--bg-card)' }}>Employee</option>
                                                 <option value="manager" style={{ background: 'var(--bg-card)' }}>Manager</option>

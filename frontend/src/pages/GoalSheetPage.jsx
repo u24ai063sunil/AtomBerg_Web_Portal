@@ -414,50 +414,89 @@ const GoalSheetPage = () => {
             {/* 3-STEP SUBMISSION WIZARD MODAL */}
             {submitStep > 0 && (
                 <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wizard-title">
-                    <div className="modal-content" style={{maxWidth: '600px'}}>
+                    <div className="modal-content wizard-modal-content" style={{ maxWidth: '650px', borderRadius: '24px' }}>
                         
+                        {/* Elegant Step Indicator */}
+                        <div className="wizard-stepper">
+                            <div className={`step-item ${submitStep >= 1 ? 'active' : ''} ${submitStep > 1 ? 'completed' : ''}`}>
+                                <div className="step-circle">1</div>
+                                <span className="step-label">Review Summary</span>
+                            </div>
+                            <div className="step-connector">
+                                <div className="step-connector-fill" style={{ width: submitStep > 1 ? '100%' : '0%' }}></div>
+                            </div>
+                            <div className={`step-item ${submitStep >= 2 ? 'active' : ''} ${submitStep > 2 ? 'completed' : ''}`}>
+                                <div className="step-circle">2</div>
+                                <span className="step-label">Confirm Goals</span>
+                            </div>
+                            <div className="step-connector">
+                                <div className="step-connector-fill" style={{ width: submitStep > 2 ? '100%' : '0%' }}></div>
+                            </div>
+                            <div className={`step-item ${submitStep === 3 ? 'active completed' : ''}`}>
+                                <div className="step-circle">3</div>
+                                <span className="step-label">Complete</span>
+                            </div>
+                        </div>
+
                         {submitStep === 1 && (
-                            <>
-                                <h3 id="wizard-title">Step 1: Review Summary</h3>
-                                <div className="review-list">
+                            <div className="animate-fade-in">
+                                <h2 id="wizard-title" style={{ marginTop: 0, marginBottom: '0.5rem', fontSize: '1.5rem', fontWeight: 700 }}>Review Goals Summary</h2>
+                                <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Please verify your allocations and priority alignment before submitting to your manager.</p>
+                                
+                                <div className="review-list" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
                                     {goals.map((g, i) => (
-                                        <div key={i} style={{padding:'0.5rem 0', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between'}}>
-                                            <span style={{fontWeight:500}}>{i+1}. {g.title}</span>
-                                            <span style={{color:'var(--primary)', fontWeight:600}}>{g.weightage}%</span>
+                                        <div key={i} className="review-item-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'var(--bg-input)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                                <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Goal #{i+1}: {g.title || 'Untitled Goal'}</span>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{g.thrustArea} • {g.uomType}</span>
+                                            </div>
+                                            <span style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', padding: '0.4rem 0.8rem', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem' }}>
+                                                {g.weightage}%
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
-                                <div style={{display:'flex', alignItems:'center', gap:'0.5rem', marginTop:'1.5rem', padding:'1rem', background:'rgba(16, 185, 129, 0.1)', color:'var(--success)', borderRadius:'8px', fontWeight:600}}>
-                                    ✓ Total weightage exactly 100%
+                                
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)', borderRadius: '12px', fontWeight: 600, fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }}></div>
+                                    ✓ Perfect weightage distribution totaling exactly 100%
                                 </div>
-                                <p style={{marginTop:'1.5rem'}}>Everything looks good — ready to submit?</p>
-                                <div className="modal-actions">
+                                
+                                <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
                                     <button className="btn btn-outline" onClick={() => setSubmitStep(0)}>Cancel</button>
                                     <button className="btn btn-primary" onClick={() => setSubmitStep(2)}>Continue to Confirm →</button>
                                 </div>
-                            </>
+                            </div>
                         )}
 
                         {submitStep === 2 && (
-                            <div style={{textAlign:'center', padding:'2rem 0'}}>
-                                <h3 id="wizard-title">Step 2: Confirm Submission</h3>
-                                <p style={{fontSize:'1.1rem', color:'var(--text-muted)', lineHeight:'1.6', marginBottom:'2rem'}}>
-                                    By submitting, you're sharing these goals with <strong>your manager</strong> for review. Goals will be locked after approval.
+                            <div className="animate-fade-in" style={{ textAlign: 'center', padding: '1rem 0' }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+                                <h2 id="wizard-title" style={{ marginTop: 0, marginBottom: '0.5rem', fontSize: '1.5rem', fontWeight: 700 }}>Confirm Goal Submission</h2>
+                                <p style={{ fontSize: '1rem', color: 'var(--text-muted)', lineHeight: '1.6', maxWidth: '450px', margin: '0 auto 2rem' }}>
+                                    By submitting, your goal sheet for <strong>{cycle.name}</strong> will be sent to your manager for review. You won't be able to edit these goals once approved.
                                 </p>
-                                <div style={{display:'flex', gap:'1rem', justifyContent:'center'}}>
-                                    <button className="btn btn-outline" style={{padding:'1rem 2rem', fontSize:'1.1rem'}} onClick={() => setSubmitStep(1)}>← Go Back</button>
-                                    <button className="btn-primary" style={{padding:'1rem 2rem', fontSize:'1.1rem'}} onClick={confirmSubmit}>Submit Goals →</button>
+                                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', width: '100%' }}>
+                                    <button className="btn btn-outline" style={{ padding: '0.75rem 2rem' }} onClick={() => setSubmitStep(1)}>← Go Back</button>
+                                    <button className="btn btn-primary" style={{ padding: '0.75rem 2rem' }} onClick={confirmSubmit}>Confirm & Submit →</button>
                                 </div>
                             </div>
                         )}
 
                         {submitStep === 3 && (
-                            <div style={{textAlign:'center', padding:'3rem 0'}}>
-                                <h2 id="wizard-title" style={{color:'var(--success)', fontSize:'2.5rem', marginBottom:'1rem'}}>Submitted! 🎉</h2>
-                                <p style={{fontSize:'1.1rem', color:'var(--text-muted)', marginBottom:'2rem'}}>
-                                    Your goals have been submitted! Your manager will review them within 3 working days.
+                            <div className="animate-fade-in success-state" style={{ textAlign: 'center', padding: '2rem 0' }}>
+                                <div className="success-checkmark-wrapper" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                                    <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <CheckCircleIcon />
+                                    </div>
+                                </div>
+                                <h2 id="wizard-title" style={{ color: 'var(--success)', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem', marginTop: 0 }}>Goals Submitted! 🎉</h2>
+                                <p style={{ fontSize: '1rem', color: 'var(--text-muted)', maxWidth: '450px', margin: '0 auto 2rem', lineHeight: '1.5' }}>
+                                    Excellent work! Your goal sheet is now submitted. Your manager has been notified and will review it shortly.
                                 </p>
-                                <button className="btn btn-primary" onClick={() => setSubmitStep(0)}>View My Submitted Goals</button>
+                                <button className="btn btn-primary" style={{ padding: '0.75rem 2rem' }} onClick={() => setSubmitStep(0)}>
+                                    View My Submitted Goals
+                                </button>
                             </div>
                         )}
 

@@ -8,6 +8,8 @@ const AVATAR_COLORS = ['#ef4444', '#f97316', '#8b5cf6', '#14b8a6', '#06b6d4', '#
 const ManagerDashboard = () => {
   const navigate = useNavigate();
   const [team, setTeam] = useState([]);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [msg, setMsg] = useState({ type: '', text: '' });
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -34,6 +36,26 @@ const ManagerDashboard = () => {
     fetchTeam();
   }, [API_URL]);
 
+  const handleSendReport = async () => {
+    setReportLoading(true);
+    setMsg({ type: '', text: '' });
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/manager/send-report`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setMsg({ type: 'success', text: res.data.message });
+      } else {
+        setMsg({ type: 'error', text: 'Failed to send team status report.' });
+      }
+    } catch (err) {
+      setMsg({ type: 'error', text: err.response?.data?.error || 'Failed to send team status report.' });
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
   const stats = {
     total: team.length,
     pending: team.filter(t => t.status === 'SUBMITTED').length,
@@ -46,7 +68,24 @@ const ManagerDashboard = () => {
   return (
     <div className="manager-dashboard-container">
       <div className="manager-dashboard-header">
-        <h1>My Team — FY 2025-26</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+          <h1 style={{ margin: 0 }}>My Team — FY 2025-26</h1>
+          <button 
+            className="btn-sm btn-primary" 
+            onClick={handleSendReport} 
+            disabled={reportLoading}
+            style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', fontSize: '0.95rem' }}
+          >
+            {reportLoading ? 'Sending Report...' : 'Send Team Report to HR'}
+          </button>
+        </div>
+
+        {msg.text && (
+          <div className={`alert ${msg.type}`} style={{ padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border)', background: msg.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: msg.type === 'success' ? 'var(--success)' : 'var(--error)' }}>
+            {msg.text}
+          </div>
+        )}
+
         <div className="manager-stats-row">
           <div className="manager-stat-card">
             <span className="stat-label">Direct Reports</span>
