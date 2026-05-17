@@ -1,134 +1,237 @@
 const express = require('express');
 const router = express.Router();
 const GoalSheet = require('../models/GoalSheet');
-const jwt = require('jsonwebtoken');
+const Goal = require('../models/Goal');
+const Cycle = require('../models/Cycle');
+const { authenticateJWT, requireRole } = require('../middleware/auth');
+const { requireActiveWindow, validateGoalSheet } = require('../middleware/validators');
 
-// Middleware to protect routes
-const auth = async (req, res, next) => {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
-
+// Get my sheet for active cycle
+router.get('/my-sheet', authenticateJWT, requireRole('EMPLOYEE', 'MANAGER', 'ADMIN'), async (req, res) => {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) {
-        res.status(401).json({ message: 'Token is not valid' });
-    }
-};
-
-// Create or update goal sheet (Draft)
-router.post('/', auth, async (req, res) => {
-    try {
-        const { goals, cycle, status } = req.body;
-        
-        // Fetch user's managerId from User model
-        const User = require('../models/User');
-        const user = await User.findById(req.user.id);
-        const managerId = user.managerId;
-
-        let goalSheet = await GoalSheet.findOne({ employeeId: req.user.id, cycle });
-
-        if (goalSheet) {
-            if (goalSheet.isLocked) {
-                return res.status(403).json({ message: 'Goal sheet is locked. Contact Admin to unlock.' });
-            }
-            goalSheet.goals = goals;
-            goalSheet.status = status || 'draft';
-            goalSheet.managerId = managerId;
-            await goalSheet.save();
+        const { cycleId } = req.query;
+        let cycle = null;
+        if (cycleId) {
+            cycle = await Cycle.findById(cycleId);
         } else {
-            goalSheet = new GoalSheet({
-                employeeId: req.user.id,
-                managerId,
-                goals,
-                cycle,
-                status: status || 'draft'
+            cycle = await Cycle.findOne({ isActive: true });
+        }
+        
+        if (!cycle) {
+            // Auto-bootstrap a default cycle for production readiness
+            cycle = new Cycle({
+                name: 'FY 2025-26',
+                fiscalYear: '2025-26',
+                startDate: new Date(),
+                endDate: new Date(Date.now() + 31536000000), // +1 year
+                isActive: true,
+                maxGoalsPerEmployee: 8,
+                minWeightagePerGoal: 10,
+                activeWindow: 'GOAL_SETTING'
             });
-            await goalSheet.save();
+            await cycle.save();
         }
 
-        res.json(goalSheet);
-    } catch (err) {
-        console.error('Error in POST /goals:', err);
-        res.status(500).json({ message: err.message });
+        let sheet = await GoalSheet.findOne({ employeeId: req.user._id, cycleId: cycle._id });
+        if (!sheet) {
+             sheet = new GoalSheet({ employeeId: req.user._id, cycleId: cycle._id });
+             await sheet.save();
+        }
+
+        const goals = await Goal.find({ goalSheetId: sheet._id }).sort('order');
+        res.json({ success: true, data: { sheet, goals } });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Get current user's goal sheet
-router.get('/me', auth, async (req, res) => {
+// Create a new goal
+router.post('/', authenticateJWT, requireRole('EMPLOYEE', 'MANAGER', 'ADMIN'), requireActiveWindow('GOAL_SETTING'), async (req, res) => {
     try {
-        const { cycle } = req.query;
-        const goalSheet = await GoalSheet.findOne({ employeeId: req.user.id, cycle })
-            .populate('managerId', 'name email');
+        const { title, description, thrustArea, uomType, target, targetNumeric, targetDate, weightage } = req.body;
+        const cycle = req.activeCycle;
         
-        // Return 200 with null if not found, avoids frontend error logging
-        if (!goalSheet) return res.json(null);
-        res.json(goalSheet);
-    } catch (err) {
-        console.error('Error in /goals/me:', err);
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Submit goal sheet for approval
-router.post('/submit', auth, async (req, res) => {
-    try {
-        const { cycle } = req.body;
-        const goalSheet = await GoalSheet.findOne({ employeeId: req.user.id, cycle });
-
-        if (!goalSheet) return res.status(404).json({ message: 'Goal sheet not found' });
+        let sheet = await GoalSheet.findOne({ employeeId: req.user._id, cycleId: cycle._id });
+        if (!sheet) {
+            sheet = new GoalSheet({ employeeId: req.user._id, cycleId: cycle._id });
+            await sheet.save();
+        }
         
-        // Validation rules
-        const totalWeight = goalSheet.goals.reduce((sum, g) => sum + g.weightage, 0);
-        if (totalWeight !== 100) {
-            return res.status(400).json({ message: 'Total weightage must be 100%' });
+        if (sheet.isLocked) {
+             return res.status(403).json({ success: false, error: 'Goal sheet is locked.' });
         }
 
-        if (goalSheet.goals.length === 0) {
-            return res.status(400).json({ message: 'At least one goal is required' });
+        const goalsCount = await Goal.countDocuments({ goalSheetId: sheet._id });
+        if (goalsCount >= cycle.maxGoalsPerEmployee) {
+            return res.status(400).json({ success: false, error: `Maximum ${cycle.maxGoalsPerEmployee} goals allowed.` });
+        }
+        
+        if (weightage < cycle.minWeightagePerGoal) {
+             return res.status(400).json({ success: false, error: `Minimum weightage is ${cycle.minWeightagePerGoal}%.` });
         }
 
-        goalSheet.status = 'submitted';
-        await goalSheet.save();
-
-        res.json(goalSheet);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Calculate progress scores
-router.get('/scores/:id', auth, async (req, res) => {
-    try {
-        const goalSheet = await GoalSheet.findById(req.params.id);
-        if (!goalSheet) return res.status(404).json({ message: 'Goal sheet not found' });
-
-        const scores = goalSheet.goals.map(goal => {
-            const achievement = goal.achievements?.[req.query.quarter || 'q1']?.actual;
-            if (!achievement) return { goalId: goal._id, score: 0 };
-
-            let score = 0;
-            switch (goal.uom) {
-                case 'numeric':
-                case 'percentage':
-                    // Assuming "Higher is better" as default for numeric/%
-                    score = (parseFloat(achievement) / parseFloat(goal.target)) * 100;
-                    break;
-                case 'timeline':
-                    // Simple boolean for now: if achievement date <= target date, 100%
-                    score = new Date(achievement) <= new Date(goal.target) ? 100 : 0;
-                    break;
-                case 'zero-based':
-                    score = parseFloat(achievement) === 0 ? 100 : 0;
-                    break;
-            }
-            return { goalId: goal._id, score: Math.min(score, 100) };
+        const goal = new Goal({
+            goalSheetId: sheet._id,
+            title, description, thrustArea, uomType, target, targetNumeric, targetDate, weightage
         });
+        await goal.save();
+        
+        res.status(201).json({ success: true, data: goal });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
-        res.json(scores);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+// Edit goal
+router.put('/:id', authenticateJWT, requireRole('EMPLOYEE', 'MANAGER', 'ADMIN'), requireActiveWindow('GOAL_SETTING'), async (req, res) => {
+    try {
+        const goalId = req.params.id;
+        const goal = await Goal.findById(goalId);
+        if (!goal) return res.status(404).json({ success: false, error: 'Goal not found.' });
+
+        const sheet = await GoalSheet.findById(goal.goalSheetId);
+        if (sheet.employeeId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, error: 'Unauthorized.' });
+        }
+        if (sheet.isLocked || (sheet.status !== 'DRAFT' && sheet.status !== 'RETURNED')) {
+            return res.status(403).json({ success: false, error: 'Cannot edit goals in current sheet status.' });
+        }
+        
+        if (goal.isReadOnly) {
+            // Only update weightage
+            if (req.body.weightage !== undefined) {
+                 if (req.body.weightage < req.activeCycle.minWeightagePerGoal) {
+                      return res.status(400).json({ success: false, error: `Minimum weightage is ${req.activeCycle.minWeightagePerGoal}%.` });
+                 }
+                 goal.weightage = req.body.weightage;
+                 await goal.save();
+                 return res.json({ success: true, data: goal });
+            }
+            return res.status(403).json({ success: false, error: 'Shared goals are read-only except for weightage.' });
+        }
+
+        const updatableFields = ['title', 'description', 'thrustArea', 'uomType', 'target', 'targetNumeric', 'targetDate', 'weightage'];
+        updatableFields.forEach(field => {
+            if (req.body[field] !== undefined) goal[field] = req.body[field];
+        });
+        
+        if (goal.weightage < req.activeCycle.minWeightagePerGoal) {
+            return res.status(400).json({ success: false, error: `Minimum weightage is ${req.activeCycle.minWeightagePerGoal}%.` });
+        }
+
+        await goal.save();
+        res.json({ success: true, data: goal });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Delete goal
+router.delete('/:id', authenticateJWT, requireRole('EMPLOYEE', 'MANAGER', 'ADMIN'), requireActiveWindow('GOAL_SETTING'), async (req, res) => {
+    try {
+        const goalId = req.params.id;
+        const goal = await Goal.findById(goalId);
+        if (!goal) return res.status(404).json({ success: false, error: 'Goal not found.' });
+
+        const sheet = await GoalSheet.findById(goal.goalSheetId);
+        if (sheet.employeeId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, error: 'Unauthorized.' });
+        }
+        if (sheet.isLocked || (sheet.status !== 'DRAFT' && sheet.status !== 'RETURNED')) {
+            return res.status(403).json({ success: false, error: 'Cannot delete goals in current sheet status.' });
+        }
+
+        await Goal.findByIdAndDelete(goalId);
+        res.json({ success: true, data: null });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Bulk save goals
+router.post('/bulk-save', authenticateJWT, requireRole('EMPLOYEE', 'MANAGER', 'ADMIN'), requireActiveWindow('GOAL_SETTING'), async (req, res) => {
+    try {
+        const { goals } = req.body;
+        const cycle = req.activeCycle;
+        
+        let sheet = await GoalSheet.findOne({ employeeId: req.user._id, cycleId: cycle._id });
+        if (!sheet) {
+            sheet = new GoalSheet({ employeeId: req.user._id, cycleId: cycle._id });
+            await sheet.save();
+        }
+
+        if (sheet.isLocked || (sheet.status !== 'DRAFT' && sheet.status !== 'RETURNED')) {
+            return res.status(403).json({ success: false, error: 'Cannot edit goals in current sheet status.' });
+        }
+
+        // Wipe existing goals and re-insert for simplicity, OR update existing.
+        // For production UI where we hold state locally and "Save Draft", wiping and replacing is easiest if we don't care about ID preservation on drafts.
+        // Actually, let's update by ID or create if no ID.
+        const currentGoals = await Goal.find({ goalSheetId: sheet._id });
+        const existingIds = currentGoals.map(g => g._id.toString());
+        
+        const incomingIds = goals.filter(g => g._id).map(g => g._id.toString());
+        
+        // Delete goals not in incoming
+        const toDelete = existingIds.filter(id => !incomingIds.includes(id));
+        await Goal.deleteMany({ _id: { $in: toDelete } });
+
+        for (let i = 0; i < goals.length; i++) {
+            let g = goals[i];
+            if (g._id && existingIds.includes(g._id.toString())) {
+                await Goal.findByIdAndUpdate(g._id, { ...g, order: i });
+            } else {
+                delete g._id; // Remove temporary ID from frontend
+                delete g.id;
+                g.goalSheetId = sheet._id;
+                g.order = i;
+                await Goal.create(g);
+            }
+        }
+        
+        const updatedGoals = await Goal.find({ goalSheetId: sheet._id }).sort('order');
+        res.json({ success: true, data: updatedGoals });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Submit sheet
+router.post('/submit', authenticateJWT, requireRole('EMPLOYEE', 'MANAGER', 'ADMIN'), requireActiveWindow('GOAL_SETTING'), async (req, res) => {
+    try {
+        const cycle = req.activeCycle;
+        const sheet = await GoalSheet.findOne({ employeeId: req.user._id, cycleId: cycle._id });
+        if (!sheet) return res.status(404).json({ success: false, error: 'Goal sheet not found.' });
+        
+        if (sheet.isLocked || (sheet.status !== 'DRAFT' && sheet.status !== 'RETURNED')) {
+            return res.status(400).json({ success: false, error: 'Goal sheet cannot be submitted in current state.' });
+        }
+
+        const goals = await Goal.find({ goalSheetId: sheet._id });
+        const errors = validateGoalSheet(goals, cycle);
+        
+        if (errors.length > 0) {
+            return res.status(400).json({ success: false, error: 'Validation failed', fields: { errors } });
+        }
+
+        sheet.status = 'SUBMITTED';
+        sheet.submittedAt = new Date();
+        await sheet.save();
+
+        // Send Email & Teams Notifications
+        const { notifyGoalSubmitted } = require('../services/notificationService');
+        const User = require('../models/User');
+        const employee = await User.findById(req.user._id);
+        if (employee && employee.managerId) {
+            const manager = await User.findById(employee.managerId);
+            if (manager) {
+                notifyGoalSubmitted(employee, manager, goals, sheet._id).catch(err => console.error(err));
+            }
+        }
+
+        res.json({ success: true, data: sheet });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 

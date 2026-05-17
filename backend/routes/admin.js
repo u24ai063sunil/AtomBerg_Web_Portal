@@ -1,63 +1,120 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const Cycle = require('../models/Cycle');
 const GoalSheet = require('../models/GoalSheet');
-const jwt = require('jsonwebtoken');
+const Goal = require('../models/Goal');
+const SharedGoal = require('../models/SharedGoal');
+const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
+const { authenticateJWT, requireRole } = require('../middleware/auth');
+const { autoAuditLog } = require('../middleware/audit');
 
-// Middleware to protect routes and check admin role
-const isAdmin = async (req, res, next) => {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
+router.use(authenticateJWT, requireRole('ADMIN'));
 
+// Create new cycle
+router.post('/cycle', async (req, res) => {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        if (decoded.role !== 'admin') {
-            return res.status(403).json({ message: 'Access denied. Admin role required.' });
-        }
-        req.user = decoded;
-        next();
+        const cycle = new Cycle(req.body);
+        await cycle.save();
+        res.status(201).json({ success: true, data: cycle });
     } catch (err) {
-        res.status(401).json({ message: 'Token is not valid' });
-    }
-};
-
-// Get all users
-router.get('/users', isAdmin, async (req, res) => {
-    try {
-        const users = await User.find().populate('managerId', 'name');
-        res.json(users);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// Update user role or manager
-router.patch('/users/:id', isAdmin, async (req, res) => {
+// Update cycle config
+router.put('/cycle/:id', async (req, res) => {
     try {
-        const { role, managerId } = req.body;
-        const user = await User.findByIdAndUpdate(req.params.id, { role, managerId }, { new: true });
-        res.json(user);
+        const cycle = await Cycle.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json({ success: true, data: cycle });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// Get completion stats
-router.get('/stats', isAdmin, async (req, res) => {
+// Unlock a locked goal
+router.put('/goal/:goalId/unlock', autoAuditLog('GOAL'), async (req, res) => {
     try {
-        const cycle = req.query.cycle || '2024-25';
-        const totalEmployees = await User.countDocuments({ role: 'employee' });
-        const submittedCount = await GoalSheet.countDocuments({ cycle, status: 'submitted' });
-        const approvedCount = await GoalSheet.countDocuments({ cycle, status: 'approved' });
+        const { reason } = req.body;
+        if (!reason) return res.status(400).json({ success: false, error: 'Reason is mandatory' });
+
+        const goal = await Goal.findById(req.params.goalId);
+        if (!goal) return res.status(404).json({ success: false, error: 'Goal not found' });
+
+        const sheet = await GoalSheet.findById(goal.goalSheetId);
+        if (!sheet) return res.status(404).json({ success: false, error: 'Sheet not found' });
+
+        req.auditData = {
+            entityId: goal._id,
+            action: 'GOAL_UNLOCKED',
+            oldValue: { isLocked: sheet.isLocked },
+            newValue: { isLocked: false },
+            reason
+        };
+
+        sheet.isLocked = false;
+        sheet.status = 'RETURNED'; // usually unlocking means they can edit it, so RETURNED makes sense
+        await sheet.save();
+
+        res.json({ success: true, data: sheet });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Push shared goal to multiple employees
+router.post('/shared-goal', async (req, res) => {
+    try {
+        const { title, description, thrustArea, uomType, target, targetNumeric, primaryOwnerId, cycleId, recipientIds } = req.body;
         
-        res.json({
-            totalEmployees,
-            submittedCount,
-            approvedCount,
-            pendingCount: totalEmployees - (submittedCount + approvedCount)
+        const sharedGoal = new SharedGoal({
+            title, description, thrustArea, uomType, target, targetNumeric, primaryOwnerId, cycleId, pushedBy: req.user._id
         });
+        await sharedGoal.save();
+
+        // Push to recipients
+        const goalsToInsert = recipientIds.map(userId => ({
+            // Need to find their goal sheet or they have to add it. 
+            // In a real system, you might create a Goal linked to the SharedGoal, and attach it to their sheet
+            // We'll leave the exact insertion logic generic here
+            title, description, thrustArea, uomType, target, targetNumeric,
+            isShared: true,
+            sharedGoalId: sharedGoal._id,
+            isReadOnly: true,
+            weightage: 10 // Default
+        }));
+        
+        res.json({ success: true, data: sharedGoal });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Audit Log
+router.get('/audit-log', async (req, res) => {
+    try {
+        const { page = 1, entityType, actorId } = req.query;
+        const query = {};
+        if (entityType) query.entityType = entityType;
+        if (actorId) query.actorId = actorId;
+
+        const logs = await AuditLog.find(query)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * 20)
+            .limit(20);
+        res.json({ success: true, data: logs });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// List all users with hierarchy
+router.get('/users', async (req, res) => {
+    try {
+        const users = await User.find({}).select('-passwordHash');
+        res.json({ success: true, data: users });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 

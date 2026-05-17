@@ -7,6 +7,7 @@ const multer = require('multer');
 const path = require('path');
 const User = require('../models/User');
 const router = express.Router();
+const { authenticateJWT } = require('../middleware/auth');
 
 // Nodemailer Config
 const transporter = nodemailer.createTransport({
@@ -21,7 +22,7 @@ const transporter = nodemailer.createTransport({
 const storage = multer.diskStorage({
     destination: './uploads/profiles/',
     filename: (req, file, cb) => {
-        cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
+        cb(null, `${req.user.id || req.user._id}-${Date.now()}${path.extname(file.originalname)}`);
     }
 });
 const upload = multer({ storage });
@@ -44,9 +45,9 @@ router.post('/signup', async (req, res) => {
 
         user = new User({
             email,
-            password: hashedPassword,
+            passwordHash: hashedPassword,
             name,
-            role: role || 'employee',
+            role: role ? role.toUpperCase() : 'EMPLOYEE',
             verificationCode,
             verificationCodeExpires: Date.now() + 3600000 // 1 hour
         });
@@ -97,57 +98,56 @@ router.post('/login', async (req, res) => {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
 
-        if (!user || !user.password) {
+        if (!user || !user.passwordHash) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        if (!user.isVerified) {
-            return res.status(401).json({ message: 'Please verify your email first' });
-        }
+        // Removed email verification check to simplify for the hackathon
+        // if (!user.isVerified) {
+        //     return res.status(401).json({ message: 'Please verify your email first' });
+        // }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, user.passwordHash);
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
         const token = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET,
+            { id: user._id, role: user.role, name: user.name, email: user.email },
+            process.env.JWT_SECRET || 'secret',
             { expiresIn: '7d' }
         );
 
         res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
-        res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
+        res.json({ token, user: { id: user._id, name: user.name, role: user.role, email: user.email }, success: true });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// Google Auth - Callback (Keep existing logic)
+// Google Auth - Entry
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// Google Auth - Callback
 router.get('/google/callback',
     passport.authenticate('google', { session: false, failureRedirect: '/login' }),
     async (req, res) => {
-        const token = jwt.sign({ id: req.user._id, role: req.user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ id: req.user._id, role: req.user.role }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
         res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
-        res.redirect(`${process.env.FRONTEND_URL}/auth-success?token=${token}`);
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth-success?token=${token}`);
     }
 );
 
-// --- Profile Routes ---
-
-const auth = (req, res, next) => {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ message: 'Not authenticated' });
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) { res.status(401).json({ message: 'Invalid token' }); }
-};
-
 // Update Profile
-router.patch('/profile', auth, async (req, res) => {
+router.patch('/profile', authenticateJWT, async (req, res) => {
     try {
-        const { name, designation, department } = req.body;
-        const user = await User.findByIdAndUpdate(req.user.id, { name, designation, department }, { new: true });
+        const { name, designation, department, managerId, role } = req.body;
+        const updatedRole = role ? role.toUpperCase() : undefined;
+        const updateData = { name, designation, department };
+        if (managerId !== undefined) {
+            updateData.managerId = managerId === "" ? null : managerId;
+        }
+        if (updatedRole) updateData.role = updatedRole;
+        
+        const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true });
         res.json(user);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -155,17 +155,17 @@ router.patch('/profile', auth, async (req, res) => {
 });
 
 // Change Password
-router.post('/change-password', auth, async (req, res) => {
+router.post('/change-password', authenticateJWT, async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
 
-        if (!user.password) return res.status(400).json({ message: 'Google users cannot change password this way' });
+        if (!user.passwordHash) return res.status(400).json({ message: 'Google users cannot change password this way' });
 
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        const isMatch = await bcrypt.compare(oldPassword, user.passwordHash);
         if (!isMatch) return res.status(400).json({ message: 'Incorrect old password' });
 
-        user.password = await bcrypt.hash(newPassword, 10);
+        user.passwordHash = await bcrypt.hash(newPassword, 10);
         await user.save();
 
         res.json({ message: 'Password changed successfully' });
@@ -175,12 +175,12 @@ router.post('/change-password', auth, async (req, res) => {
 });
 
 // Upload Profile Picture
-router.post('/profile-picture', auth, upload.single('image'), async (req, res) => {
+router.post('/profile-picture', authenticateJWT, upload.single('image'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
         
         const pictureUrl = `/uploads/profiles/${req.file.filename}`;
-        await User.findByIdAndUpdate(req.user.id, { picture: pictureUrl });
+        await User.findByIdAndUpdate(req.user._id, { picture: pictureUrl });
         
         res.json({ picture: pictureUrl });
     } catch (err) {
@@ -191,23 +191,24 @@ router.post('/profile-picture', auth, upload.single('image'), async (req, res) =
 // Logout
 router.post('/logout', (req, res) => {
     res.clearCookie('token');
-    res.json({ message: 'Logged out successfully' });
+    res.json({ message: 'Logged out successfully', success: true });
 });
 
 // Get Me
-router.get('/me', auth, async (req, res) => {
+router.get('/me', authenticateJWT, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user);
+        const user = await User.findById(req.user._id).select('-passwordHash');
+        // Return both for compatibility
+        res.json({ ...user.toObject(), id: user._id, success: true, data: user });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
 // Get all managers
-router.get('/managers', auth, async (req, res) => {
+router.get('/managers', authenticateJWT, async (req, res) => {
     try {
-        const managers = await User.find({ role: 'manager' }).select('name email _id picture');
+        const managers = await User.find({ role: { $in: ['MANAGER', 'ADMIN'] } }).select('name email _id picture');
         res.json(managers);
     } catch (err) {
         res.status(500).json({ message: err.message });

@@ -23,7 +23,7 @@ app.use('/uploads', express.static('uploads'));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
+    .then(() => console.log('Connected to MongoDB successfully!'))
     .catch(err => console.error('MongoDB connection error:', err));
 
 require('./config/passport');
@@ -33,11 +33,13 @@ const authRoutes = require('./routes/auth');
 const goalRoutes = require('./routes/goals');
 const managerRoutes = require('./routes/manager');
 const adminRoutes = require('./routes/admin');
+const escalationRoutes = require('./routes/escalations');
 
 app.use('/auth', authRoutes);
 app.use('/goals', goalRoutes);
 app.use('/manager', managerRoutes);
 app.use('/admin', adminRoutes);
+app.use('/escalations', escalationRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'AtomQuest Goal Tracking API' });
@@ -50,4 +52,8 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    
+    // Start Cron Jobs
+    const { startCron } = require('./services/escalationCron');
+    startCron();
 });

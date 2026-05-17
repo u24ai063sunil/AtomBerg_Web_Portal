@@ -1,22 +1,14 @@
 const mongoose = require('mongoose');
 
 const auditLogSchema = new mongoose.Schema({
-    goalSheetId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'GoalSheet',
-        required: true
-    },
-    changedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    changeType: {
-        type: String,
-        required: true
-    },
-    previousData: mongoose.Schema.Types.Mixed,
-    newData: mongoose.Schema.Types.Mixed,
+    actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    actorName: String,
+    actorRole: String,
+    entityType: { type: String, enum: ['GOAL', 'GOALSHEET', 'SHARED_GOAL', 'CYCLE', 'USER'], required: true },
+    entityId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    action: { type: String, required: true },
+    oldValue: mongoose.Schema.Types.Mixed,
+    newValue: mongoose.Schema.Types.Mixed,
     reason: String
 }, { timestamps: true });
 
