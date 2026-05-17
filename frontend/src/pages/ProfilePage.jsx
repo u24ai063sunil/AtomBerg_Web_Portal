@@ -22,10 +22,32 @@ const ProfilePage = () => {
     const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState({ type: '', text: '' });
+    const [requestSending, setRequestSending] = useState(false);
+    const [requestSuccess, setRequestSuccess] = useState(false);
 
     useEffect(() => {
         fetchManagers();
     }, []);
+
+    const handleRequestManager = async () => {
+        setRequestSending(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post(`${API_URL}/auth/request-manager`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setRequestSuccess(true);
+            setMsg({ type: 'success', text: 'Manager assignment request sent to Admin successfully!' });
+        } catch (err) {
+            console.error('Backend request failed, opening mailto fallback', err);
+            const subject = encodeURIComponent(`Reporting Manager Assignment Request - ${profile.name}`);
+            const body = encodeURIComponent(`Hi Admin,\n\nPlease assign a reporting manager to my account on AtomQuest.\n\nDetails:\n- Name: ${profile.name}\n- Email: ${profile.email}\n- Designation: ${profile.designation || 'Not Set'}\n- Department: ${profile.department || 'Not Set'}\n\nThank you!`);
+            window.location.href = `mailto:admin@atomberg.com?subject=${subject}&body=${body}`;
+            setMsg({ type: 'success', text: 'Opening mail client to request manager assignment...' });
+        } finally {
+            setRequestSending(false);
+        }
+    };
 
     const fetchManagers = async () => {
         try {
@@ -182,43 +204,81 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Reporting Manager {user?.role?.toUpperCase() !== 'ADMIN' && user?.managerId ? <span style={{fontSize:'0.75rem', color:'var(--text-muted)', fontWeight:'normal'}}>(Contact HR to change)</span> : ''}</label>
-                                        <div className="input-with-icon">
-                                            <User size={18} />
-                                            <select 
-                                                value={profile.managerId} 
-                                                onChange={(e) => setProfile({...profile, managerId: e.target.value})}
-                                                disabled={user?.role?.toUpperCase() !== 'ADMIN' && user?.managerId}
-                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0', opacity: (user?.role?.toUpperCase() !== 'ADMIN' && user?.managerId) ? 0.6 : 1 }}
-                                            >
-                                                <option value="" style={{ background: 'var(--bg-card)' }}>Select a Manager</option>
-                                                {managers.map(m => (
-                                                    <option key={m._id} value={m._id} style={{ background: 'var(--bg-card)' }}>
-                                                        {m.name} ({m.email})
-                                                    </option>
-                                                ))}
-                                            </select>
+                                {user?.role?.toUpperCase() === 'EMPLOYEE' ? (
+                                    <div className="form-row">
+                                        <div className="form-group" style={{ position: 'relative' }}>
+                                            <label>Reporting Manager</label>
+                                            <div className="input-with-icon" style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', width: '100%', border: '1px solid var(--border)', borderRadius: '8px', padding: '0 0.75rem', background: 'var(--bg-input)' }}>
+                                                    <User size={18} style={{ color: 'var(--text-muted)', marginRight: '0.5rem' }} />
+                                                    <input 
+                                                        type="text" 
+                                                        value={profile.managerId ? (managers.find(m => m._id === profile.managerId)?.name || 'Manager Assigned') : 'Not Assigned'} 
+                                                        disabled 
+                                                        style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0', outline: 'none' }}
+                                                    />
+                                                </div>
+                                                {!profile.managerId && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleRequestManager}
+                                                        disabled={requestSending || requestSuccess}
+                                                        style={{
+                                                            marginTop: '0.5rem',
+                                                            padding: '0.4rem 0.8rem',
+                                                            fontSize: '0.8rem',
+                                                            background: 'rgba(99, 102, 241, 0.1)',
+                                                            color: 'var(--primary)',
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            alignSelf: 'flex-start',
+                                                            gap: '0.25rem',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                    >
+                                                        📩 {requestSending ? 'Sending Request...' : requestSuccess ? 'Request Sent!' : 'Request Manager Assignment'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>System Role <span style={{fontSize:'0.75rem', color:'var(--text-muted)', fontWeight:'normal'}}>(Contact HR to change)</span></label>
+                                            <div className="input-with-icon" style={{ display: 'flex', alignItems: 'center', width: '100%', border: '1px solid var(--border)', borderRadius: '8px', padding: '0 0.75rem', background: 'var(--bg-input)' }}>
+                                                <Briefcase size={18} style={{ color: 'var(--text-muted)', marginRight: '0.5rem' }} />
+                                                <input 
+                                                    type="text" 
+                                                    value="Employee" 
+                                                    disabled 
+                                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0', outline: 'none' }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="form-group">
-                                        <label>System Role {user?.role?.toUpperCase() !== 'ADMIN' ? <span style={{fontSize:'0.75rem', color:'var(--text-muted)', fontWeight:'normal'}}>(Contact HR to change)</span> : ''}</label>
-                                        <div className="input-with-icon">
-                                            <Briefcase size={18} />
-                                            <select 
-                                                value={profile.role} 
-                                                onChange={(e) => setProfile({...profile, role: e.target.value})}
-                                                disabled={user?.role?.toUpperCase() !== 'ADMIN'}
-                                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0', opacity: user?.role?.toUpperCase() !== 'ADMIN' ? 0.6 : 1 }}
-                                            >
-                                                <option value="employee" style={{ background: 'var(--bg-card)' }}>Employee</option>
-                                                <option value="manager" style={{ background: 'var(--bg-card)' }}>Manager</option>
-                                                <option value="admin" style={{ background: 'var(--bg-card)' }}>HR / Admin</option>
-                                            </select>
+                                ) : (
+                                    /* Managers and Admins do not have Reporting Manager selector field */
+                                    <div className="form-row">
+                                        <div className="form-group" style={{ width: '100%' }}>
+                                            <label>System Role {user?.role?.toUpperCase() !== 'ADMIN' ? <span style={{fontSize:'0.75rem', color:'var(--text-muted)', fontWeight:'normal'}}>(Contact HR to change)</span> : ''}</label>
+                                            <div className="input-with-icon">
+                                                <Briefcase size={18} />
+                                                <select 
+                                                    value={profile.role} 
+                                                    onChange={(e) => setProfile({...profile, role: e.target.value})}
+                                                    disabled={user?.role?.toUpperCase() !== 'ADMIN'}
+                                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', padding: '0.75rem 0', opacity: user?.role?.toUpperCase() !== 'ADMIN' ? 0.6 : 1 }}
+                                                >
+                                                    <option value="employee" style={{ background: 'var(--bg-card)' }}>Employee</option>
+                                                    <option value="manager" style={{ background: 'var(--bg-card)' }}>Manager</option>
+                                                    <option value="admin" style={{ background: 'var(--bg-card)' }}>HR / Admin</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <button type="submit" className="primary-btn" disabled={loading}>
                                     <Save size={18} /> {loading ? 'Saving...' : 'Save Changes'}
