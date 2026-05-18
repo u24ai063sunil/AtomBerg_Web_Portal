@@ -61,13 +61,39 @@ const AnalyticsDashboard = () => {
   const [roleView, setRoleView] = useState('EMPLOYEE');
   const [loading, setLoading] = useState(true);
   const [cascadeData, setCascadeData] = useState([]);
+  const [liveThrustArea, setLiveThrustArea] = useState(thrustAreaData);
+  const [liveUomData, setLiveUomData] = useState(uomData);
+  const [liveTeamHeatmap, setLiveTeamHeatmap] = useState(teamHeatmapData);
 
   useEffect(() => {
     setLoading(true);
     fetchCascadeData();
+    fetchReportsData();
     const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, [roleView]);
+
+  const fetchReportsData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/admin/reports-data`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data?.success && res.data?.data) {
+        if (res.data.data.thrustAreaData && res.data.data.thrustAreaData.length > 0) {
+          setLiveThrustArea(res.data.data.thrustAreaData);
+        }
+        if (res.data.data.uomData && res.data.data.uomData.length > 0) {
+          setLiveUomData(res.data.data.uomData);
+        }
+        if (res.data.data.teamHeatmapData && res.data.data.teamHeatmapData.length > 0) {
+          setLiveTeamHeatmap(res.data.data.teamHeatmapData);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch live dynamic reports data", err);
+    }
+  };
 
   const fetchCascadeData = async () => {
     try {
@@ -95,7 +121,7 @@ const AnalyticsDashboard = () => {
         const csvRows = [
           ["Team Heatmap Score Report"],
           ["Employee", "Goal 1", "Goal 2", "Goal 3", "Goal 4", "Goal 5"],
-          ...teamHeatmapData.map(row => [row.name, ...row.scores.map(s => `${s}%`)])
+          ...liveTeamHeatmap.map(row => [row.name, ...row.scores.map(s => `${s}%`)])
         ];
         const csvContent = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -293,7 +319,7 @@ const AnalyticsDashboard = () => {
             <button className="export-btn" onClick={(e) => handleExport(e, 'Team Heatmap')}>Export PNG</button>
           </div>
           <div className="heatmap-grid">
-            {teamHeatmapData.map(row => (
+            {liveTeamHeatmap.map(row => (
               <div className="heatmap-row" key={row.name}>
                 <div className="heatmap-label">{row.name}</div>
                 {row.scores.map((score, i) => (
@@ -344,7 +370,7 @@ const AnalyticsDashboard = () => {
           <h3>Individual Trajectories (Sparklines)</h3>
         </div>
         <div className="spark-grid">
-          {teamHeatmapData.map(row => (
+          {liveTeamHeatmap.map(row => (
             <div className="spark-card" key={row.name}>
               <div style={{fontWeight:600, marginBottom:'0.5rem'}}>{row.name}</div>
               <div style={{height: 60, width: '100%'}}>
@@ -372,8 +398,8 @@ const AnalyticsDashboard = () => {
           <div style={{height: 300, width: '100%'}}>
             <ResponsiveContainer>
               <PieChart>
-                <Pie data={thrustAreaData} dataKey="value" cx="50%" cy="50%" outerRadius={100} label>
-                  {thrustAreaData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                 <Pie data={liveThrustArea} dataKey="value" cx="50%" cy="50%" outerRadius={100} label>
+                  {liveThrustArea.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                 </Pie>
                 <Tooltip />
                 <Legend />
@@ -390,8 +416,8 @@ const AnalyticsDashboard = () => {
           <div style={{height: 300, width: '100%'}}>
             <ResponsiveContainer>
               <PieChart>
-                <Pie data={uomData} dataKey="value" innerRadius={60} outerRadius={100} paddingAngle={2}>
-                  {uomData.map((entry, index) => <Cell key={`cell-${index}`} fill={UOM_COLORS[index % UOM_COLORS.length]} />)}
+                 <Pie data={liveUomData} dataKey="value" innerRadius={60} outerRadius={100} paddingAngle={2}>
+                  {liveUomData.map((entry, index) => <Cell key={`cell-${index}`} fill={UOM_COLORS[index % UOM_COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
                 <Legend />
