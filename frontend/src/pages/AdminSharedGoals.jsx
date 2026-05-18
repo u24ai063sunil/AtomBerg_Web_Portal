@@ -29,6 +29,7 @@ const AdminSharedGoals = () => {
   const [title, setTitle] = useState('');
   const [target, setTarget] = useState('');
   const [thrustArea, setThrustArea] = useState(THRUST_AREAS[0]);
+  const [uomType, setUomType] = useState('MAX'); // Default to MAX
   const [recipientType, setRecipientType] = useState('ALL'); // 'ALL' | 'DEPT' | 'INDIVIDUAL'
   const [selectedDepts, setSelectedDepts] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -130,6 +131,7 @@ const AdminSharedGoals = () => {
       const res = await axios.post(`${API_URL}/admin/shared-goal`, {
         title,
         thrustArea,
+        uomType,
         target,
         recipientIds
       }, { headers });
@@ -236,7 +238,7 @@ const AdminSharedGoals = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '1.25rem' }}>
                 <div className="form-group">
                   <label style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.875rem' }}>Thrust Area</label>
                   <select 
@@ -247,6 +249,19 @@ const AdminSharedGoals = () => {
                     {THRUST_AREAS.map(ta => (
                       <option key={ta} value={ta}>{ta}</option>
                     ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.875rem' }}>Unit of Measure (UoM)</label>
+                  <select 
+                    value={uomType}
+                    onChange={(e) => setUomType(e.target.value)}
+                    style={{ marginTop: '0.5rem', width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-main)', padding: '0.6rem 0.8rem', borderRadius: '8px' }}
+                  >
+                    <option value="MAX">MAX (Higher is better)</option>
+                    <option value="MIN">MIN (Lower is better)</option>
+                    <option value="TIMELINE">TIMELINE (Date/Due date)</option>
+                    <option value="ZERO">ZERO (Zero incidents/errors)</option>
                   </select>
                 </div>
                 <div className="form-group">

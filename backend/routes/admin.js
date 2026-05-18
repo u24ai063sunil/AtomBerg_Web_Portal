@@ -82,10 +82,10 @@ router.post('/shared-goal', async (req, res) => {
             title, 
             description, 
             thrustArea, 
-            uomType: uomType || 'numeric', 
+            uomType: uomType || 'MAX', 
             target, 
-            targetNumeric, 
-            primaryOwnerId, 
+            targetNumeric: targetNumeric || 100, 
+            primaryOwnerId: primaryOwnerId || req.user._id, 
             cycleId: targetCycleId, 
             pushedBy: req.user._id
         });
