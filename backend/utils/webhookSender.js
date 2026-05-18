@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 /**
  * Dispatches a formatted Slack webhook notification card.
  * If SLACK_WEBHOOK_URL is not set, prints message to console.
@@ -66,7 +64,11 @@ const sendWebhookNotification = async ({ type, userName, details, actionUrl }) =
 
     if (url) {
         try {
-            await axios.post(url, { blocks });
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ blocks })
+            });
             console.log(`[Webhook] Slack notification successfully dispatched for: ${userName}`);
         } catch (err) {
             console.error("[Webhook] Failed to send Slack notification:", err.message);
