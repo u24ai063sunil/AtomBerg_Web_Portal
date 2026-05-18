@@ -94,7 +94,7 @@ const ManagerApprovalPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setModals({ ...modals, return: false });
-      navigate('/dashboard/manager');
+      navigate('/dashboard/team');
     } catch (err) {
       console.error(err);
       alert("Failed to return goals.");
@@ -112,7 +112,7 @@ const ManagerApprovalPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setModals({ ...modals, approve: false });
-      navigate('/dashboard/manager');
+      navigate('/dashboard/team');
     } catch (err) {
       console.error(err);
       alert("Failed to approve goals.");

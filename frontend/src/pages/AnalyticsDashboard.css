@@ -166,3 +166,40 @@
 .spark-card {
   padding: 1rem; border: 1px solid var(--border); border-radius: 8px; text-align: center;
 }
+
+@media (max-width: 768px) {
+  .analytics-container {
+    padding: 1rem;
+  }
+  
+  .analytics-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+  
+  .role-tabs {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .role-tab {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+  }
+  
+  .chart-grid, .chart-grid.large-first {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .heatmap-row {
+    overflow-x: auto;
+  }
+  
+  .leaderboard {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
