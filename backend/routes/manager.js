@@ -10,10 +10,14 @@ const { autoAuditLog } = require('../middleware/audit');
 
 router.use(authenticateJWT, requireRole('MANAGER', 'ADMIN'));
 
-// Get team
 router.get('/team', async (req, res) => {
     try {
-        const team = await User.find({ managerId: req.user._id, isActive: true });
+        let team;
+        if (req.user.role === 'ADMIN') {
+            team = await User.find({ isActive: true });
+        } else {
+            team = await User.find({ managerId: req.user._id, isActive: true });
+        }
         
         // Augment with GoalSheet status
         const Cycle = require('../models/Cycle');

@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import './ManagerDashboard.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const AVATAR_COLORS = ['#ef4444', '#f97316', '#8b5cf6', '#14b8a6', '#06b6d4', '#ec4899'];
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
   const [team, setTeam] = useState([]);
   const [reportLoading, setReportLoading] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
@@ -69,15 +72,17 @@ const ManagerDashboard = () => {
     <div className="manager-dashboard-container">
       <div className="manager-dashboard-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
-          <h1 style={{ margin: 0 }}>My Team — FY 2025-26</h1>
-          <button 
-            className="btn-sm btn-primary" 
-            onClick={handleSendReport} 
-            disabled={reportLoading}
-            style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', fontSize: '0.95rem' }}
-          >
-            {reportLoading ? 'Sending Report...' : 'Send Team Report to HR'}
-          </button>
+          <h1 style={{ margin: 0 }}>{isAdmin ? 'Organization Goal Sheets' : 'My Team'} — FY 2025-26</h1>
+          {!isAdmin && (
+            <button 
+              className="btn-sm btn-primary" 
+              onClick={handleSendReport} 
+              disabled={reportLoading}
+              style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', fontSize: '0.95rem' }}
+            >
+              {reportLoading ? 'Sending Report...' : 'Send Team Report to HR'}
+            </button>
+          )}
         </div>
 
         {msg.text && (
@@ -88,7 +93,7 @@ const ManagerDashboard = () => {
 
         <div className="manager-stats-row">
           <div className="manager-stat-card">
-            <span className="stat-label">Direct Reports</span>
+            <span className="stat-label">{isAdmin ? 'Total Employees' : 'Direct Reports'}</span>
             <span className="stat-value">{stats.total}</span>
           </div>
           <div className="manager-stat-card">

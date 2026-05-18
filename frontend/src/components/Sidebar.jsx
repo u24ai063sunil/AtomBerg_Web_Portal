@@ -29,7 +29,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     if (userRole === 'ADMIN') {
         navItems.push(
             { name: 'Admin Console', icon: <Settings size={20} />, path: '/dashboard/admin' },
-            { name: 'Reports', icon: <BarChart3 size={20} />, path: '/dashboard/reports' }
+            { name: 'Reports', icon: <BarChart3 size={20} />, path: '/dashboard/reports' },
+            { name: 'Org Goal Sheets', icon: <Users size={20} />, path: '/dashboard/team' }
         );
     } else if (userRole === 'MANAGER') {
         navItems.push(
