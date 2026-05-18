@@ -72,17 +72,41 @@ router.post('/shared-goal', async (req, res) => {
         });
         await sharedGoal.save();
 
-        // Push to recipients
-        const goalsToInsert = recipientIds.map(userId => ({
-            // Need to find their goal sheet or they have to add it. 
-            // In a real system, you might create a Goal linked to the SharedGoal, and attach it to their sheet
-            // We'll leave the exact insertion logic generic here
-            title, description, thrustArea, uomType, target, targetNumeric,
-            isShared: true,
-            sharedGoalId: sharedGoal._id,
-            isReadOnly: true,
-            weightage: 10 // Default
-        }));
+        // Push to recipients: Create goals and associate them to recipients' active goal sheets
+        if (recipientIds && Array.isArray(recipientIds)) {
+            for (const userId of recipientIds) {
+                // 1. Find or create the GoalSheet for the recipient in the current cycle
+                let sheet = await GoalSheet.findOne({ employeeId: userId, cycleId });
+                if (!sheet) {
+                    sheet = new GoalSheet({ 
+                        employeeId: userId, 
+                        cycleId, 
+                        status: 'DRAFT',
+                        isLocked: false
+                    });
+                    await sheet.save();
+                }
+
+                // 2. Check if a goal pointing to this SharedGoal already exists on this sheet
+                const existingGoal = await Goal.findOne({ goalSheetId: sheet._id, sharedGoalId: sharedGoal._id });
+                if (!existingGoal) {
+                    const newGoal = new Goal({
+                        goalSheetId: sheet._id,
+                        title,
+                        description,
+                        thrustArea,
+                        uomType: uomType || 'numeric',
+                        target,
+                        targetNumeric,
+                        isShared: true,
+                        sharedGoalId: sharedGoal._id,
+                        isReadOnly: true,
+                        weightage: 10 // Starting default contribution weightage
+                    });
+                    await newGoal.save();
+                }
+            }
+        }
         
         res.json({ success: true, data: sharedGoal });
     } catch (err) {
