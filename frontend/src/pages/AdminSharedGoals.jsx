@@ -57,26 +57,32 @@ const AdminSharedGoals = () => {
       </div>
 
       {showModal && (
-        <div style={{position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000}}>
-          <div style={{background:'white', borderRadius:'16px', padding:'2rem', width:'600px', maxHeight:'90vh', overflowY:'auto'}}>
-            <h2 style={{marginTop:0}}>Push New Shared Goal</h2>
-            <div className="form-group">
-              <label>Goal Title</label>
-              <input type="text" className="form-input" placeholder="e.g. Org-wide compliance training" />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '2.5rem', width: '600px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)' }}>
+            <h2 style={{ marginTop: 0, color: 'var(--text-main)', fontSize: '1.5rem', marginBottom: '1.5rem' }}>Push New Shared Goal</h2>
+            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+              <label style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.875rem' }}>Goal Title</label>
+              <input type="text" className="form-input" placeholder="e.g. Org-wide compliance training" style={{ marginTop: '0.5rem' }} />
             </div>
-            <div className="form-group">
-              <label>Target</label>
-              <input type="text" className="form-input" />
+            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+              <label style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.875rem' }}>Target</label>
+              <input type="text" className="form-input" placeholder="e.g. 100% completion" style={{ marginTop: '0.5rem' }} />
             </div>
-            <div className="form-group">
-              <label>Select Recipients</label>
-              <div style={{padding:'1rem', border:'1px solid #d1d5db', borderRadius:'8px'}}>
-                <label style={{display:'flex', alignItems:'center', gap:'0.5rem'}}><input type="checkbox" /> Push to entire organization</label>
-                <label style={{display:'flex', alignItems:'center', gap:'0.5rem', marginTop:'0.5rem'}}><input type="checkbox" /> Engineering Dept</label>
-                <label style={{display:'flex', alignItems:'center', gap:'0.5rem', marginTop:'0.5rem'}}><input type="checkbox" /> Sales Dept</label>
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.875rem' }}>Select Recipients</label>
+              <div style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-input)', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" style={{ width: '16px', height: '16px', cursor: 'pointer' }} /> Push to entire organization
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" style={{ width: '16px', height: '16px', cursor: 'pointer' }} /> Engineering Dept
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" style={{ width: '16px', height: '16px', cursor: 'pointer' }} /> Sales Dept
+                </label>
               </div>
             </div>
-            <div style={{display:'flex', justifyContent:'flex-end', gap:'1rem', marginTop:'2rem'}}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={() => { alert('Goal Pushed!'); setShowModal(false); }}>Review & Confirm</button>
             </div>

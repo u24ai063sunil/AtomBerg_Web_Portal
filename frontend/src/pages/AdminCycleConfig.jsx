@@ -22,7 +22,7 @@ const AdminCycleConfig = () => {
       </div>
 
       <div className="dashboard-panel">
-        <h3 style={{marginTop:0, marginBottom:'2rem', paddingBottom:'1rem', borderBottom:'1px solid #e5e7eb'}}>Edit Cycle Config</h3>
+        <h3 style={{ marginTop: 0, marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)', color: 'var(--text-main)' }}>Edit Cycle Config</h3>
         
         <div className="config-grid">
           <div className="form-group">
@@ -51,7 +51,7 @@ const AdminCycleConfig = () => {
           </div>
         </div>
 
-        <h4 style={{marginTop:'2rem'}}>Quarterly Windows</h4>
+        <h4 style={{ marginTop: '2rem', color: 'var(--text-main)' }}>Quarterly Windows</h4>
         <div className="config-grid">
           <div className="form-group"><label>Q1 Open</label><input type="date" className="form-input" defaultValue="2026-07-01" /></div>
           <div className="form-group"><label>Q1 Close</label><input type="date" className="form-input" defaultValue="2026-07-31" /></div>
@@ -63,14 +63,14 @@ const AdminCycleConfig = () => {
           <div className="form-group"><label>Q4 Close</label><input type="date" className="form-input" defaultValue="2027-04-30" /></div>
         </div>
 
-        <h4 style={{marginTop:'2rem'}}>Thrust Areas</h4>
-        <div style={{display:'flex', flexWrap:'wrap', gap:'0.5rem', marginBottom:'1rem'}}>
+        <h4 style={{ marginTop: '2rem', color: 'var(--text-main)' }}>Thrust Areas</h4>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
           {['Sales & Revenue', 'Customer Success', 'Operational Efficiency', 'Product Quality'].map(t => (
-            <div key={t} style={{padding:'0.5rem 1rem', background:'#f3f4f6', borderRadius:'999px', fontSize:'0.875rem', display:'flex', alignItems:'center', gap:'0.5rem'}}>
-              {t} <span style={{cursor:'pointer', color:'#ef4444'}}>×</span>
+            <div key={t} style={{ padding: '0.5rem 1rem', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '999px', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
+              {t} <span style={{ cursor: 'pointer', color: 'var(--error)', fontWeight: 'bold' }}>×</span>
             </div>
           ))}
-          <div style={{padding:'0.5rem 1rem', background:'white', border:'1px dashed #d1d5db', borderRadius:'999px', fontSize:'0.875rem', color:'#6b7280', cursor:'pointer'}}>
+          <div style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1px dashed var(--border)', borderRadius: '999px', fontSize: '0.875rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
             + Add New
           </div>
         </div>

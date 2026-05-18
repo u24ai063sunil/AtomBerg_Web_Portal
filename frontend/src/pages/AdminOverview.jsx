@@ -81,6 +81,37 @@ const AdminOverview = () => {
 
 // Main Overview tab component
 const OverviewTab = () => {
+  const downloadSummaryReport = () => {
+    const csvRows = [
+      ["AtomQuest Summary Report"],
+      ["Generated At", new Date().toLocaleString()],
+      [],
+      ["Key Performance Indicators"],
+      ["Metric", "Value"],
+      ["Total Employees", "127"],
+      ["Goal Submission Rate", "89%"],
+      ["Q1 Check-in Rate", "62%"],
+      ["Shared Goals Active", "4"],
+      [],
+      ["Department Completion Statistics"],
+      ["Department", "Submitted Rate", "Check-in Rate"],
+      ["Engineering", "95%", "80%"],
+      ["Sales", "88%", "55%"],
+      ["Marketing", "90%", "60%"],
+      ["HR & Finance", "100%", "90%"]
+    ];
+
+    const csvContent = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `atomquest_summary_report_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div>
       <div className="admin-header">
@@ -88,7 +119,7 @@ const OverviewTab = () => {
           <h1>Admin Overview Dashboard</h1>
           <p style={{ margin: 0, color: 'var(--text-muted)' }}>Real-time completion monitoring, department insights, and active goal cycles.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => alert('Summary report downloaded successfully!')}>
+        <button className="btn btn-primary" onClick={downloadSummaryReport}>
           <Download size={16} /> Download Summary Report
         </button>
       </div>

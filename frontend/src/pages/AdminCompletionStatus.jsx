@@ -24,22 +24,22 @@ const AdminCompletionStatus = () => {
         </div>
       </div>
 
-      <div style={{background:'white', padding:'1.5rem', borderRadius:'12px', border:'1px solid #e5e7eb'}}>
+      <div className="dashboard-panel" style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
         <div className="heatmap-container">
           {/* Header Row */}
           <div></div>
           {WEEKS.map(w => (
-            <div key={w} className="heatmap-header">W{w}</div>
+            <div key={w} className="heatmap-header" style={{ color: 'var(--text-muted)' }}>W{w}</div>
           ))}
 
           {/* Data Rows */}
           {mockData.map(dept => (
             <React.Fragment key={dept.dept}>
-              <div style={{gridColumn: '1 / -1', padding:'1rem 0 0.5rem 0', fontWeight:700, borderBottom:'1px solid #f3f4f6'}}>{dept.dept}</div>
+              <div style={{ gridColumn: '1 / -1', padding: '1rem 0 0.5rem 0', fontWeight: 700, borderBottom: '1px solid var(--border)', color: 'var(--primary)', fontSize: '1rem' }}>{dept.dept}</div>
               {dept.employees.map(emp => (
                 <React.Fragment key={emp.name}>
-                  <div className="heatmap-row-label">
-                    <input type="checkbox" style={{marginRight:'0.5rem'}} />
+                  <div className="heatmap-row-label" style={{ color: 'var(--text-main)' }}>
+                    <input type="checkbox" style={{ marginRight: '0.5rem' }} />
                     {emp.name}
                   </div>
                   {emp.weeks.map((status, i) => (
@@ -54,11 +54,11 @@ const AdminCompletionStatus = () => {
             </React.Fragment>
           ))}
         </div>
-        <div style={{display:'flex', gap:'1rem', marginTop:'2rem', fontSize:'0.875rem'}}>
-          <div style={{display:'flex', alignItems:'center', gap:'0.5rem'}}><div className="heatmap-cell cell-green" style={{width:'16px'}}></div> Check-in Done</div>
-          <div style={{display:'flex', alignItems:'center', gap:'0.5rem'}}><div className="heatmap-cell cell-yellow" style={{width:'16px'}}></div> Submitted</div>
-          <div style={{display:'flex', alignItems:'center', gap:'0.5rem'}}><div className="heatmap-cell cell-orange" style={{width:'16px'}}></div> Pending</div>
-          <div style={{display:'flex', alignItems:'center', gap:'0.5rem'}}><div className="heatmap-cell cell-red" style={{width:'16px'}}></div> Not Started</div>
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', fontSize: '0.875rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div className="heatmap-cell cell-green" style={{ width: '16px', height: '16px', borderRadius: '4px' }}></div> Check-in Done</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div className="heatmap-cell cell-yellow" style={{ width: '16px', height: '16px', borderRadius: '4px' }}></div> Submitted</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div className="heatmap-cell cell-orange" style={{ width: '16px', height: '16px', borderRadius: '4px' }}></div> Pending</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div className="heatmap-cell cell-red" style={{ width: '16px', height: '16px', borderRadius: '4px' }}></div> Not Started</div>
         </div>
       </div>
     </div>

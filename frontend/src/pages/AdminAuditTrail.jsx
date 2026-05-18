@@ -2,11 +2,30 @@ import React from 'react';
 import './AdminPages.css';
 
 const AdminAuditTrail = () => {
+  const exportToCSV = () => {
+    const csvRows = [
+      ["Timestamp", "Actor", "Role", "Action", "Entity", "Reason"],
+      ["2025-05-17 09:30", "John Admin", "ADMIN", "GOAL_UNLOCKED", "Goal #142", "Employee requested unlock due to typo in target metric"],
+      ["2025-05-17 08:15", "Sarah Manager", "MANAGER", "GOAL_APPROVED", "Sheet #88", "—"],
+      ["2025-05-16 14:20", "Mike Emp", "EMPLOYEE", "GOAL_SUBMITTED", "Sheet #88", "—"]
+    ];
+
+    const csvContent = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `atomquest_audit_trail_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div>
       <div className="admin-header">
         <h1>Audit Trail</h1>
-        <button className="btn btn-primary">Export to CSV</button>
+        <button className="btn btn-primary" onClick={exportToCSV}>Export to CSV</button>
       </div>
 
       <div className="dashboard-panel" style={{marginBottom:'2rem'}}>
