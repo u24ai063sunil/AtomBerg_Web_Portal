@@ -222,13 +222,6 @@ const GoalSheetPage = () => {
 
     return (
         <div className="goal-sheet-container" aria-live="polite">
-            {/* Top Navigation Bar for Mobile Simulation */}
-            <div className="mobile-nav">
-                <button>Home</button>
-                <button className="active">Goals</button>
-                <button>Check-in</button>
-                <button>Profile</button>
-            </div>
 
             {/* Tour Overlay */}
             {tourStep > 0 && (
