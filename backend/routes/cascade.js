@@ -19,7 +19,7 @@ router.get('/cascade', authenticateJWT, async (req, res) => {
             .populate({
                 path: 'goalSheetId',
                 populate: {
-                    path: 'userId',
+                    path: 'employeeId',
                     select: 'name designation department picture managerId'
                 }
             })
@@ -28,9 +28,9 @@ router.get('/cascade', authenticateJWT, async (req, res) => {
         // 3. Structure cascade tree
         const cascadeTree = sharedGoals.map(sg => {
             const children = individualGoals
-                .filter(ig => ig.sharedGoalId.toString() === sg._id.toString() && ig.goalSheetId && ig.goalSheetId.userId)
+                .filter(ig => ig.sharedGoalId.toString() === sg._id.toString() && ig.goalSheetId && ig.goalSheetId.employeeId)
                 .map(ig => {
-                    const employee = ig.goalSheetId.userId;
+                    const employee = ig.goalSheetId.employeeId;
                     return {
                         id: ig._id,
                         title: ig.title,
