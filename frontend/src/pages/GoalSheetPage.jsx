@@ -104,11 +104,14 @@ const GoalSheetPage = () => {
     // Validation
     const validate = () => {
         const errors = [];
-        if (totalWeightage !== 100) errors.push('Total weightage must be exactly 100%');
+        if (totalWeightage !== 100) {
+            errors.push(`Total weightage must be exactly 100%. Current is ${totalWeightage}%.`);
+        }
         goals.forEach((g, i) => {
-            if (!g.title.trim()) errors.push(`Goal #${i+1} is missing a title`);
-            if (!g.target.trim() && g.uomType !== 'ZERO') errors.push(`Goal #${i+1} is missing a target`);
-            if (g.weightage < cycle.minWeight) errors.push(`Goal #${i+1} weightage is below minimum ${cycle.minWeight}%`);
+            if (!g.title?.trim()) errors.push(`Goal #${i+1} is missing a title.`);
+            if (!g.target?.trim() && g.uomType !== 'ZERO') errors.push(`Goal #${i+1} ("${g.title || 'Untitled'}") is missing a target KPI.`);
+            const w = Number(g.weightage) || 0;
+            if (w < cycle.minWeight) errors.push(`Goal #${i+1} ("${g.title || 'Untitled'}") weightage (${w}%) is below minimum of ${cycle.minWeight}%.`);
         });
         return errors;
     };
@@ -154,7 +157,13 @@ const GoalSheetPage = () => {
             }
         } catch (err) {
             console.error("Failed to submit goals", err);
-            alert("Failed to submit goals: " + (err.response?.data?.error || err.message));
+            const backendErrors = err.response?.data?.fields?.errors || [];
+            if (backendErrors.length > 0) {
+                setValidationErrors(backendErrors);
+                setSubmitStep(0); // Exit submission wizard to show error block
+            } else {
+                alert("Failed to submit goals: " + (err.response?.data?.error || err.message));
+            }
         }
     };
 
