@@ -64,8 +64,83 @@ const AnalyticsDashboard = () => {
     return () => clearTimeout(timer);
   }, [roleView]);
 
-  const handleExport = (chartName) => {
-    alert(`Exporting ${chartName} as PNG...`);
+  const handleExport = (e, chartName) => {
+    e.preventDefault();
+    const btn = e.currentTarget;
+    const panel = btn.closest('.chart-panel');
+    if (!panel) return;
+
+    const svgElement = panel.querySelector('svg');
+    if (!svgElement) {
+      if (chartName === 'Team Heatmap') {
+        const csvRows = [
+          ["Team Heatmap Score Report"],
+          ["Employee", "Goal 1", "Goal 2", "Goal 3", "Goal 4", "Goal 5"],
+          ...teamHeatmapData.map(row => [row.name, ...row.scores.map(s => `${s}%`)])
+        ];
+        const csvContent = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "team_heatmap_report.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+      alert('Could not find chart to export.');
+      return;
+    }
+
+    try {
+      const svgString = new XMLSerializer().serializeToString(svgElement);
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const URLObj = window.URL || window.webkitURL || window;
+      const blobURL = URLObj.createObjectURL(svgBlob);
+
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        const bbox = svgElement.getBoundingClientRect();
+        
+        const scale = 2; 
+        canvas.width = (bbox.width || 400) * scale;
+        canvas.height = (bbox.height || 300) * scale;
+        
+        const context = canvas.getContext('2d');
+        if (context) {
+          context.fillStyle = 'rgba(15, 23, 42, 1)'; 
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          
+          context.scale(scale, scale);
+          context.drawImage(image, 0, 0, bbox.width || 400, bbox.height || 300);
+          
+          const pngURL = canvas.toDataURL('image/png');
+          const downloadLink = document.createElement('a');
+          downloadLink.href = pngURL;
+          downloadLink.download = `${chartName.toLowerCase().replace(/\s+/g, '_')}_export.png`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        }
+        URLObj.revokeObjectURL(blobURL);
+      };
+      
+      image.onerror = () => {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobURL;
+        downloadLink.download = `${chartName.toLowerCase().replace(/\s+/g, '_')}_export.svg`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      };
+
+      image.src = blobURL;
+    } catch (err) {
+      console.error('Failed to export chart', err);
+      alert('Failed to export chart.');
+    }
   };
 
   const renderIndividualView = () => (
@@ -74,7 +149,7 @@ const AnalyticsDashboard = () => {
         <div className="chart-panel">
           <div className="chart-panel-header">
             <h3>Goal Achievement Trend</h3>
-            <button className="export-btn" onClick={() => handleExport('TrendLine')}>Export PNG</button>
+            <button className="export-btn" onClick={(e) => handleExport(e, 'Goal Achievement Trend')}>Export PNG</button>
           </div>
           <div style={{height: 300, width: '100%'}}>
             <ResponsiveContainer>
@@ -94,7 +169,7 @@ const AnalyticsDashboard = () => {
         <div className="chart-panel">
           <div className="chart-panel-header">
             <h3>Weighted Score</h3>
-            <button className="export-btn">Export PNG</button>
+            <button className="export-btn" onClick={(e) => handleExport(e, 'Weighted Score')}>Export PNG</button>
           </div>
           <div style={{height: 300, width: '100%', position: 'relative'}}>
             <ResponsiveContainer>
@@ -117,7 +192,7 @@ const AnalyticsDashboard = () => {
         <div className="chart-panel">
           <div className="chart-panel-header">
             <h3>Goal Score Breakdown</h3>
-            <button className="export-btn">Export PNG</button>
+            <button className="export-btn" onClick={(e) => handleExport(e, 'Goal Score Breakdown')}>Export PNG</button>
           </div>
           <div style={{height: 300, width: '100%'}}>
             <ResponsiveContainer>
@@ -138,7 +213,7 @@ const AnalyticsDashboard = () => {
         <div className="chart-panel">
           <div className="chart-panel-header">
             <h3>QoQ Comparison (Prev FY vs Current)</h3>
-            <button className="export-btn">Export PNG</button>
+            <button className="export-btn" onClick={(e) => handleExport(e, 'QoQ Comparison')}>Export PNG</button>
           </div>
           <div style={{height: 300, width: '100%'}}>
             <ResponsiveContainer>
@@ -164,7 +239,7 @@ const AnalyticsDashboard = () => {
         <div className="chart-panel">
           <div className="chart-panel-header">
             <h3>Team Heatmap (Goals vs Members)</h3>
-            <button className="export-btn">Export PNG</button>
+            <button className="export-btn" onClick={(e) => handleExport(e, 'Team Heatmap')}>Export PNG</button>
           </div>
           <div className="heatmap-grid">
             {teamHeatmapData.map(row => (
@@ -241,7 +316,7 @@ const AnalyticsDashboard = () => {
         <div className="chart-panel">
           <div className="chart-panel-header">
             <h3>Thrust Area Distribution</h3>
-            <button className="export-btn">Export PNG</button>
+            <button className="export-btn" onClick={(e) => handleExport(e, 'Thrust Area Distribution')}>Export PNG</button>
           </div>
           <div style={{height: 300, width: '100%'}}>
             <ResponsiveContainer>
@@ -259,7 +334,7 @@ const AnalyticsDashboard = () => {
         <div className="chart-panel">
           <div className="chart-panel-header">
             <h3>UoM Distribution</h3>
-            <button className="export-btn">Export PNG</button>
+            <button className="export-btn" onClick={(e) => handleExport(e, 'UoM Distribution')}>Export PNG</button>
           </div>
           <div style={{height: 300, width: '100%'}}>
             <ResponsiveContainer>
