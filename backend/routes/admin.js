@@ -67,8 +67,27 @@ router.post('/shared-goal', async (req, res) => {
     try {
         const { title, description, thrustArea, uomType, target, targetNumeric, primaryOwnerId, cycleId, recipientIds } = req.body;
         
+        let targetCycleId = cycleId;
+        if (!targetCycleId) {
+            const Cycle = require('../models/Cycle');
+            const activeCycle = await Cycle.findOne({ isActive: true });
+            if (activeCycle) {
+                targetCycleId = activeCycle._id;
+            } else {
+                return res.status(400).json({ success: false, message: 'No active cycle found. Configure a cycle first.' });
+            }
+        }
+
         const sharedGoal = new SharedGoal({
-            title, description, thrustArea, uomType, target, targetNumeric, primaryOwnerId, cycleId, pushedBy: req.user._id
+            title, 
+            description, 
+            thrustArea, 
+            uomType: uomType || 'numeric', 
+            target, 
+            targetNumeric, 
+            primaryOwnerId, 
+            cycleId: targetCycleId, 
+            pushedBy: req.user._id
         });
         await sharedGoal.save();
 
@@ -76,11 +95,11 @@ router.post('/shared-goal', async (req, res) => {
         if (recipientIds && Array.isArray(recipientIds)) {
             for (const userId of recipientIds) {
                 // 1. Find or create the GoalSheet for the recipient in the current cycle
-                let sheet = await GoalSheet.findOne({ employeeId: userId, cycleId });
+                let sheet = await GoalSheet.findOne({ employeeId: userId, cycleId: targetCycleId });
                 if (!sheet) {
                     sheet = new GoalSheet({ 
                         employeeId: userId, 
-                        cycleId, 
+                        cycleId: targetCycleId, 
                         status: 'DRAFT',
                         isLocked: false
                     });
