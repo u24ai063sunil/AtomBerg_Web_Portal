@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart
 } from 'recharts';
 import './AnalyticsDashboard.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // --- MOCK DATA ---
 const trendData = [
@@ -56,13 +59,28 @@ const getHeatmapColor = (score) => {
 const AnalyticsDashboard = () => {
   const [roleView, setRoleView] = useState('EMPLOYEE');
   const [loading, setLoading] = useState(true);
+  const [cascadeData, setCascadeData] = useState([]);
 
   useEffect(() => {
-    // Simulate data fetch
     setLoading(true);
+    fetchCascadeData();
     const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, [roleView]);
+
+  const fetchCascadeData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/goals/cascade`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data?.success) {
+        setCascadeData(res.data.cascade || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch cascade data", err);
+    }
+  };
 
   const handleExport = (e, chartName) => {
     e.preventDefault();
@@ -408,6 +426,142 @@ const AnalyticsDashboard = () => {
     </>
   );
 
+   const renderCascadeView = () => {
+    if (cascadeData.length === 0) {
+      return (
+        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-muted)' }}>
+          <Award size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+          <p>No corporate Shared Goals have been cascade-pushed by Admin yet.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+        <div className="glass-card" style={{ padding: '1.5rem', background: 'rgba(99, 102, 241, 0.05)', border: '1px solid var(--primary)', borderRadius: '12px' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--primary)' }}>⭐ Alignment Cascade Architecture</h3>
+          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+            This interactive map shows how top-level corporate Shared Goals set by executives trickle down and direct key individual results across your organization. Select any node to trace the line-of-sight alignment.
+          </p>
+        </div>
+
+        {cascadeData.map(node => (
+          <div key={node.id} className="cascade-group" style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1.8fr',
+            gap: '3rem',
+            alignItems: 'center',
+            position: 'relative',
+            background: 'rgba(255,255,255,0.01)',
+            border: '1px solid var(--border)',
+            borderRadius: '16px',
+            padding: '2rem'
+          }}>
+            {/* Corporate Shared Goal Node */}
+            <div className="glass-card corporate-node" style={{
+              border: '2px solid var(--primary)',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              background: 'rgba(99, 102, 241, 0.08)',
+              position: 'relative',
+              boxShadow: '0 0 15px rgba(99, 102, 241, 0.1)'
+            }}>
+              <span style={{
+                background: 'var(--primary)',
+                color: '#ffffff',
+                fontSize: '0.65rem',
+                fontWeight: 800,
+                padding: '0.25rem 0.6rem',
+                borderRadius: '20px',
+                position: 'absolute',
+                top: '-12px',
+                left: '15px',
+                textTransform: 'uppercase'
+              }}>
+                Corporate Target
+              </span>
+              <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.1rem' }}>{node.title}</h3>
+              <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{node.thrustArea} goal</p>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                <span>🎯 Target: <strong>{node.target}</strong></span>
+                <span>📈 Progress: <strong>{node.latestAchievement || 0}%</strong></span>
+              </div>
+            </div>
+
+            {/* Individual Employee Mapped Nodes */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+              {/* Connector line overlay */}
+              <div style={{
+                position: 'absolute',
+                left: '-2.5rem',
+                top: '15px',
+                bottom: '15px',
+                width: '2px',
+                background: 'var(--border)'
+              }} />
+
+              {node.children.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--border)' }}>
+                  No employees mapped to this goal yet. Mapped automatically when a goalsheet referencing this Shared Goal is approved.
+                </div>
+              ) : (
+                node.children.map(child => (
+                  <div key={child.id} className="glass-card employee-node" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '1rem 1.25rem',
+                    border: '1px solid var(--border)',
+                    borderRadius: '10px',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    position: 'relative'
+                  }}>
+                    {/* Visual branch connector */}
+                    <div style={{
+                      position: 'absolute',
+                      left: '-2.5rem',
+                      top: '50%',
+                      width: '2.5rem',
+                      height: '2px',
+                      background: 'var(--border)'
+                    }} />
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: 'var(--success)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: '0.9rem'
+                      }}>
+                        {child.employee?.name ? child.employee.name[0] : 'E'}
+                      </div>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '0.85rem' }}>{child.employee?.name}</h4>
+                        <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>{child.employee?.designation} ({child.employee?.department})</p>
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)' }}>{child.weightage}% weight</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Contribution</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="analytics-container">
       <div className="analytics-header">
@@ -421,6 +575,7 @@ const AnalyticsDashboard = () => {
             <button className={`role-tab ${roleView === 'EMPLOYEE' ? 'active' : ''}`} onClick={() => setRoleView('EMPLOYEE')}>Individual</button>
             <button className={`role-tab ${roleView === 'MANAGER' ? 'active' : ''}`} onClick={() => setRoleView('MANAGER')}>Team</button>
             <button className={`role-tab ${roleView === 'ADMIN' ? 'active' : ''}`} onClick={() => setRoleView('ADMIN')}>Organization</button>
+            <button className={`role-tab ${roleView === 'CASCADE' ? 'active' : ''}`} onClick={() => setRoleView('CASCADE')}>Alignment Cascade</button>
           </div>
         </div>
       </div>
@@ -436,6 +591,7 @@ const AnalyticsDashboard = () => {
           {roleView === 'EMPLOYEE' && renderIndividualView()}
           {roleView === 'MANAGER' && renderTeamView()}
           {roleView === 'ADMIN' && renderOrgView()}
+          {roleView === 'CASCADE' && renderCascadeView()}
         </>
       )}
     </div>

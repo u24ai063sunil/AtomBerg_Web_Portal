@@ -13,7 +13,14 @@ const userSchema = new mongoose.Schema({
     managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     department: String,
     designation: String,
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    achievements: [{
+        id: { type: String, required: true },
+        name: { type: String, required: true },
+        icon: { type: String, required: true },
+        description: { type: String, required: true },
+        unlockedAt: { type: Date, default: Date.now }
+    }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

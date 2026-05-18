@@ -34,12 +34,16 @@ const goalRoutes = require('./routes/goals');
 const managerRoutes = require('./routes/manager');
 const adminRoutes = require('./routes/admin');
 const escalationRoutes = require('./routes/escalations');
+const gamificationRoutes = require('./routes/gamification');
+const cascadeRoutes = require('./routes/cascade');
 
 app.use('/auth', authRoutes);
 app.use('/goals', goalRoutes);
 app.use('/manager', managerRoutes);
 app.use('/admin', adminRoutes);
 app.use('/escalations', escalationRoutes);
+app.use('/gamification', gamificationRoutes);
+app.use('/goals', cascadeRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'AtomQuest Goal Tracking API' });

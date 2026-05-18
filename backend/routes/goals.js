@@ -218,6 +218,33 @@ router.post('/submit', authenticateJWT, requireRole('EMPLOYEE', 'MANAGER', 'ADMI
         sheet.submittedAt = new Date();
         await sheet.save();
 
+        // Send Webhook Alert (Slack/Teams)
+        const { sendWebhookNotification } = require('../utils/webhookSender');
+        sendWebhookNotification({
+            type: 'SUBMIT',
+            userName: req.user.name,
+            details: {
+                department: req.user.department,
+                designation: req.user.designation
+            },
+            actionUrl: `${req.protocol}://${req.get('host')}/dashboard/team-review`
+        }).catch(err => console.error(err));
+
+        // Unlock "Early Aligner" Achievement Badge
+        const employeeRecord = await User.findById(req.user._id);
+        if (employeeRecord) {
+            const hasEarlyAligner = employeeRecord.achievements.some(a => a.id === 'early_aligner');
+            if (!hasEarlyAligner) {
+                employeeRecord.achievements.push({
+                    id: 'early_aligner',
+                    name: 'Early Aligner',
+                    icon: '⚡',
+                    description: 'Successfully aligned and submitted your Goal Sheet ahead of the deadline!'
+                });
+                await employeeRecord.save();
+            }
+        }
+
         // Send Email & Teams Notifications
         const { notifyGoalSubmitted } = require('../services/notificationService');
         const User = require('../models/User');

@@ -97,9 +97,51 @@ router.put('/sheet/:sheetId/approve', autoAuditLog('GOALSHEET'), async (req, res
         sheet.approvedBy = req.user._id;
         await sheet.save();
 
+        const employee = await User.findById(sheet.employeeId);
+
+        // Send Slack Webhook Notification Alert
+        const { sendWebhookNotification } = require('../utils/webhookSender');
+        if (employee) {
+            sendWebhookNotification({
+                type: 'APPROVE',
+                userName: employee.name,
+                details: {
+                    department: employee.department || 'General',
+                    designation: employee.designation || 'Employee'
+                },
+                actionUrl: `${req.protocol}://${req.get('host')}/dashboard`
+            }).catch(err => console.error(err));
+
+            // Unlock "Alignment Champion" Badge for Employee
+            const hasEmpBadge = employee.achievements.some(a => a.id === 'alignment_champion');
+            if (!hasEmpBadge) {
+                employee.achievements.push({
+                    id: 'alignment_champion',
+                    name: 'Alignment Champion',
+                    icon: '🎯',
+                    description: 'Your goalsheet has been officially aligned and approved by your reporting manager!'
+                });
+                await employee.save();
+            }
+        }
+
+        // Unlock "Champion Reviewer" Badge for Manager
+        const managerRecord = await User.findById(req.user._id);
+        if (managerRecord) {
+            const hasMgrBadge = managerRecord.achievements.some(a => a.id === 'champion_reviewer');
+            if (!hasMgrBadge) {
+                managerRecord.achievements.push({
+                    id: 'champion_reviewer',
+                    name: 'Champion Reviewer',
+                    icon: '⭐',
+                    description: 'Approved your very first reportee goal sheet in record time!'
+                });
+                await managerRecord.save();
+            }
+        }
+
         // Send Notification
         const { notifyGoalApproved } = require('../services/notificationService');
-        const employee = await User.findById(sheet.employeeId);
         if (employee) {
             notifyGoalApproved(employee, req.user, sheet._id).catch(err => console.error(err));
         }
