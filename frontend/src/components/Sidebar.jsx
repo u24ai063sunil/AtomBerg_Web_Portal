@@ -10,7 +10,8 @@ import {
     Users,
     FileText,
     Sun,
-    Moon
+    Moon,
+    X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -18,7 +19,7 @@ import './Sidebar.css';
 
 import Avatar from './Avatar';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, setIsOpen }) => {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
 
@@ -47,10 +48,15 @@ const Sidebar = () => {
     }
 
     return (
-        <div className="sidebar">
+        <div className={`sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-header">
                 <img src="/atomberg-logo.png" alt="Atomberg" className="sidebar-logo" />
                 <span className="brand-name">AtomQuest</span>
+                
+                <button className="close-sidebar-btn" onClick={() => setIsOpen(false)} title="Close Menu">
+                    <X size={20} />
+                </button>
+
                 <button className="theme-toggle" onClick={toggleTheme} title="Toggle Theme">
                     {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                 </button>

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
+import { Menu } from 'lucide-react';
 
 // Original stubs - we keep Overview for the welcome page
 import Overview from './dashboard/Overview';
@@ -29,14 +30,27 @@ const RoleRoute = ({ allowedRoles, children }) => {
 const Dashboard = () => {
     const { user } = useAuth();
     const role = user?.role?.toUpperCase() || 'EMPLOYEE';
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
         <div className="dashboard-layout">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+            
+            {/* Dark Dim Overlay when Sidebar is toggled open on Mobile */}
+            {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+
             <main className="dashboard-main">
-                {/* Optional Header - usually handled internally by the new pages, but we can keep a simple top bar if needed */}
-                <header className="dashboard-header" style={{display:'none'}}>
-                </header>
+                {/* Mobile Top Bar */}
+                <div className="mobile-top-bar">
+                    <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)} title="Open Menu">
+                        <Menu size={24} />
+                    </button>
+                    <div className="mobile-logo">
+                        <img src="/atomberg-logo.png" alt="Atomberg" onError={(e) => { e.target.style.display = 'none'; }} />
+                        <span>AtomQuest</span>
+                    </div>
+                    <div style={{ width: 24 }}></div>
+                </div>
                 
                 <div className="dashboard-content" style={{padding: 0, height: '100vh', overflowY: 'auto'}}>
                     <Routes>

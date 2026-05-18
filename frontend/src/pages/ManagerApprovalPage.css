@@ -201,3 +201,60 @@
 .modal-actions {
   display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;
 }
+
+@media (max-width: 1024px) {
+  .approval-page-container {
+    height: auto;
+    overflow-y: auto;
+  }
+  
+  .approval-header {
+    padding: 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .approval-header .btn {
+    width: 100%;
+  }
+
+  .split-layout {
+    flex-direction: column;
+    overflow: visible;
+  }
+  
+  .panel {
+    overflow-y: visible;
+    padding: 1.5rem;
+    padding-bottom: 2rem;
+    flex: none;
+  }
+  
+  .panel-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .action-bar {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    background: var(--bg-sidebar);
+  }
+  
+  .btn {
+    flex: 1;
+    font-size: 0.9rem;
+    padding: 0.75rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+}
