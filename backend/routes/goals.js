@@ -3,6 +3,7 @@ const router = express.Router();
 const GoalSheet = require('../models/GoalSheet');
 const Goal = require('../models/Goal');
 const Cycle = require('../models/Cycle');
+const User = require('../models/User');
 const { authenticateJWT, requireRole } = require('../middleware/auth');
 const { requireActiveWindow, validateGoalSheet } = require('../middleware/validators');
 
@@ -247,7 +248,6 @@ router.post('/submit', authenticateJWT, requireRole('EMPLOYEE', 'MANAGER', 'ADMI
 
         // Send Email & Teams Notifications
         const { notifyGoalSubmitted } = require('../services/notificationService');
-        const User = require('../models/User');
         const employee = await User.findById(req.user._id);
         if (employee && employee.managerId) {
             const manager = await User.findById(employee.managerId);
