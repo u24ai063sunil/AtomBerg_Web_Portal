@@ -115,10 +115,4 @@ Please follow these steps to experience the full end-to-end cascading, check-in,
 
 ---
 
-### 🏁 Instructions for Submission
-1.  **Open this document** in your markdown editor.
-2.  **Insert your actual Vercel & Render URLs** in the placeholders at the top.
-3.  **Convert to PDF**: In VSCode, press `Ctrl+Shift+P`, type `Markdown: Export PDF`, or paste the text into a Word document and save as a PDF.
-4.  **Upload the single PDF file** directly to the hackathon submission portal!
-
 *Thank you for evaluating AtomQuest 1.0!*
