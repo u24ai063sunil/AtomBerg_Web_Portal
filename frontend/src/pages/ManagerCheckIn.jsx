@@ -33,7 +33,42 @@ const ManagerCheckIn = () => {
   };
 
   const handleExport = () => {
-    alert('Downloading Team_Checkin_Report.xlsx');
+    // Generate CSV content
+    const headers = [
+      "Employee Name", 
+      "Goal Title", 
+      "UoM", 
+      "Annual Target", 
+      "Q1 Planned", 
+      "Q1 Actual", 
+      "Score %", 
+      "Status"
+    ];
+    
+    const rows = mockData.map(row => [
+      row.employeeName,
+      row.title,
+      row.uomType,
+      row.target,
+      row.q1Planned,
+      row.q1Actual,
+      row.score > 0 ? `${row.score}%` : '-',
+      row.status.replace('_', ' ')
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Team_Checkin_Report_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
