@@ -30,29 +30,50 @@ To facilitate immediate evaluation, the live database is fully populated with co
 
 ## 🏗️ Technical Architecture Diagram
 
+AtomQuest is designed on a resilient, decoupled MERN architecture backed by enterprise-grade validation, secure JWT sessions, and real-time cascaded goal calculations.
+
 ```mermaid
 graph TD
     %% Styling
     classDef client fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
     classDef server fill:#f0fdf4,stroke:#16a34a,stroke-width:2px;
     classDef database fill:#fef2f2,stroke:#dc2626,stroke-width:2px;
-    classDef extern fill:#fffbeb,stroke:#d97706,stroke-width:2px;
+    classDef auth fill:#faf5ff,stroke:#9333ea,stroke-width:2px;
 
     %% Nodes
-    A[React Client SPA<br/>Vercel Hosting]:::client
-    B[Express.js Server API Gateway<br/>Render Hosting]:::server
-    C[MongoDB Atlas Cloud Cluster]:::database
-    D[Google OAuth 2.0 Identity Server]:::extern
-    E[Enterprise Mailer & Slack Webhooks]:::extern
+    A[React Client Web App]:::client
+    B[Express.js API Gateway]:::server
+    C[MongoDB Atlas Cluster]:::database
+    D[Google OAuth 2.0 SSO]:::auth
+    E[Enterprise Mail & Webhook Router]:::server
 
     %% Connections
-    A -->|Secure HTTPS + JWT Sessions| B
-    B -->|Mongoose Schema Queries| C
-    A -->|One-click OAuth Authenticate| D
-    B -->|Validate Auth Ticket| D
-    B -->|Real-time Notifications| E
+    A -->|HTTPS Requests + JWT| B
+    B -->|Mongoose ODM| C
+    A -->|OAuth Handshake| D
+    B -->|Verify Ticket| D
+    B -->|Trigger Events| E
 ```
 
+### 🔄 End-to-End Goal Cascade Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin
+    actor Manager
+    actor Employee
+
+    Admin->>SharedGoal: Create Corporate OKR Target
+    SharedGoal-->>Manager: Cascade OKR to Department
+    Manager->>Employee: Push Aligned shared target
+    Employee->>GoalSheet: Create Sheet & Align Individual Goals
+    Employee->>GoalSheet: Validate Rules (Weightage = 100%, Max 8 Goals)
+    Employee->>GoalSheet: Submit for Approval
+    Manager->>GoalSheet: Review (Approve or Return for Rework)
+    GoalSheet-->>Employee: Email / Slack Notification Sent
+    Note over Employee, Manager: Goal Sheet Locked Post-Approval
+```
 ---
 
 ## 🛣️ Step-by-Step User Journey Test Walkthroughs
