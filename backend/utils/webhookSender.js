@@ -1,5 +1,4 @@
 const https = require('https');
-const urlModule = require('url');
 
 /**
  * Dispatches a formatted Slack webhook notification card.
@@ -67,13 +66,13 @@ const sendWebhookNotification = async ({ type, userName, details, actionUrl }) =
 
     if (url) {
         try {
-            const parsedUrl = urlModule.parse(url);
+            const parsedUrl = new URL(url);
             const dataStr = JSON.stringify({ blocks });
             
             const options = {
                 hostname: parsedUrl.hostname,
                 port: parsedUrl.port || 443,
-                path: parsedUrl.path,
+                path: parsedUrl.pathname + parsedUrl.search,
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
