@@ -160,8 +160,8 @@ const ManagerDashboard = () => {
               )}
               {member.status === 'APPROVED' && (
                 <>
-                  <button className="btn-sm btn-outline" onClick={() => navigate(`/dashboard/goals`)}>View Goals</button>
-                  <button className="btn-sm btn-primary" onClick={() => navigate(`/dashboard/check-ins`)}>Log Check-in</button>
+                  <button className="btn-sm btn-outline" onClick={() => navigate(`/dashboard/manager/approve/${member.sheetId}`)}>View Goals</button>
+                  <button className="btn-sm btn-primary" onClick={() => navigate(`/dashboard/manager/check-ins`)}>Log Check-in</button>
                 </>
               )}
               {member.status === 'RETURNED' && (

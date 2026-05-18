@@ -12,6 +12,7 @@ import GoalSheetPage from './GoalSheetPage';
 import EmployeeCheckIn from './EmployeeCheckIn';
 import ManagerDashboard from './ManagerDashboard';
 import ManagerApprovalPage from './ManagerApprovalPage';
+import ManagerCheckIn from './ManagerCheckIn';
 import AdminOverview from './AdminOverview';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ProfilePage from './ProfilePage';
@@ -60,6 +61,7 @@ const Dashboard = () => {
                         <Route path="/check-ins" element={<EmployeeCheckIn />} />
                         <Route path="/team" element={<RoleRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerDashboard /></RoleRoute>} />
                         <Route path="/manager/approve/:sheetId" element={<RoleRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerApprovalPage /></RoleRoute>} />
+                        <Route path="/manager/check-ins" element={<RoleRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerCheckIn /></RoleRoute>} />
                         <Route path="/admin" element={<RoleRoute allowedRoles={['ADMIN']}><AdminOverview /></RoleRoute>} />
                         <Route path="/reports" element={<RoleRoute allowedRoles={['ADMIN']}><AnalyticsDashboard /></RoleRoute>} />
                     </Routes>
