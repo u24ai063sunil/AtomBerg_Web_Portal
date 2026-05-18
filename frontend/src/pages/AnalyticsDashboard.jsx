@@ -94,7 +94,41 @@ const AnalyticsDashboard = () => {
     }
 
     try {
-      const svgString = new XMLSerializer().serializeToString(svgElement);
+      const bbox = svgElement.getBoundingClientRect();
+      const width = bbox.width || 500;
+      const height = bbox.height || 300;
+
+      const svgClone = svgElement.cloneNode(true);
+      svgClone.setAttribute('width', width);
+      svgClone.setAttribute('height', height);
+
+      const originalElements = svgElement.querySelectorAll('*');
+      const cloneElements = svgClone.querySelectorAll('*');
+      for (let i = 0; i < originalElements.length; i++) {
+        const orig = originalElements[i];
+        const cln = cloneElements[i];
+        if (orig && cln) {
+          const computed = window.getComputedStyle(orig);
+          cln.style.fontFamily = computed.fontFamily || 'Outfit, sans-serif';
+          cln.style.fontSize = computed.fontSize;
+          cln.style.fontWeight = computed.fontWeight;
+          
+          if (computed.fill && computed.fill !== 'none') {
+            cln.setAttribute('fill', computed.fill);
+          }
+          if (computed.stroke && computed.stroke !== 'none') {
+            cln.setAttribute('stroke', computed.stroke);
+          }
+          if (computed.strokeWidth) {
+            cln.setAttribute('stroke-width', computed.strokeWidth);
+          }
+          if (computed.opacity) {
+            cln.setAttribute('opacity', computed.opacity);
+          }
+        }
+      }
+
+      const svgString = new XMLSerializer().serializeToString(svgClone);
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const URLObj = window.URL || window.webkitURL || window;
       const blobURL = URLObj.createObjectURL(svgBlob);
@@ -102,11 +136,9 @@ const AnalyticsDashboard = () => {
       const image = new Image();
       image.onload = () => {
         const canvas = document.createElement('canvas');
-        const bbox = svgElement.getBoundingClientRect();
-        
         const scale = 2; 
-        canvas.width = (bbox.width || 400) * scale;
-        canvas.height = (bbox.height || 300) * scale;
+        canvas.width = width * scale;
+        canvas.height = height * scale;
         
         const context = canvas.getContext('2d');
         if (context) {
@@ -114,7 +146,7 @@ const AnalyticsDashboard = () => {
           context.fillRect(0, 0, canvas.width, canvas.height);
           
           context.scale(scale, scale);
-          context.drawImage(image, 0, 0, bbox.width || 400, bbox.height || 300);
+          context.drawImage(image, 0, 0, width, height);
           
           const pngURL = canvas.toDataURL('image/png');
           const downloadLink = document.createElement('a');
