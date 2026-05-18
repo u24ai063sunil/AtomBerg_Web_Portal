@@ -129,7 +129,7 @@ const ManagerApprovalPage = () => {
           <p>{employeeInfo.dept} • {employeeInfo.totalGoals} Goals Submitted</p>
         </div>
         <div>
-          <button className="btn" style={{background:'transparent', color:'var(--text-muted)'}} onClick={() => navigate('/dashboard/manager')}>Back to Team</button>
+          <button className="btn" style={{background:'transparent', color:'var(--text-muted)'}} onClick={() => navigate('/dashboard/team')}>Back to Team</button>
         </div>
       </div>
 
