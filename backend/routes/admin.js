@@ -338,6 +338,18 @@ router.post('/seed-database', async (req, res) => {
             achievements: [badges.earlyAligner]
         });
 
+        // Demo User Admin Profile
+        const demoAdmin = await User.create({
+            name: 'Demo User',
+            email: 'd03025346@gmail.com',
+            passwordHash: defaultPassword,
+            role: 'ADMIN',
+            designation: 'External Product Auditor',
+            department: 'Strategic Planning',
+            picture: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Demo',
+            achievements: [badges.earlyAligner]
+        });
+
         // B. Manager Profiles
         const rdManager = await User.create({
             name: 'Dharmaram Jaat',
