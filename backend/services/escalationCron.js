@@ -5,20 +5,12 @@ const User = require('../models/User');
 const GoalSheet = require('../models/GoalSheet');
 const EscalationRule = require('../models/EscalationRule');
 const EscalationLog = require('../models/EscalationLog');
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER || 'test@example.com',
-        pass: process.env.EMAIL_PASS || 'password'
-    }
-});
+const { sendEmail: unifiedSendEmail } = require('../utils/emailSender');
 
 const sendEmail = async (to, subject, text) => {
     try {
         console.log(`[ESCALATION] Sending email to ${to}: ${subject}`);
-        await transporter.sendMail({ from: process.env.EMAIL_USER, to, subject, text });
+        await unifiedSendEmail({ to, subject, text });
     } catch (err) {
         console.error('Email error:', err.message);
     }

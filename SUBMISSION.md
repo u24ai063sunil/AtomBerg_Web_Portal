@@ -72,8 +72,22 @@ graph TD
 *   **Optimized Indexing**: Employs unique sparse compound indexes (e.g., ensuring a goal cannot have duplicate quarterly entries per cycle) to guarantee data integrity under high concurrent loads.
 
 #### **4. External Services & Alert Integrations**
-*   **Transactional SMTP Mailing**: Real-time nodemailer alerts notify employees immediately when their manager changes their sheet status (e.g., Approvals or requests for Rework).
+*   **Transactional HTTPS & SMTP Mailing**: Integrated with **Resend** (via HTTPS API) to bypass outgoing SMTP port blockages on cloud environments like Render. Automatically falls back to standard **Nodemailer SMTP** for local developer evaluation.
 *   **Resilient Webhook Hub**: Asynchronous notifier sending instant corporate updates (e.g., active cycle adjustments or major cascaded targets) to central **Slack channels** to encourage organization-wide transparency.
+
+### 📧 Evaluation of Reliable Email Delivery (Resend Integration)
+To bypass the standard outbound SMTP port blockages (ports 25, 465, 587) enforced by hosting environments like Render, the portal now utilizes **Resend**'s secure HTTPS API for email dispatch.
+
+To evaluate this:
+1. Obtain an API Key from [Resend](https://resend.com).
+2. Add the following environment variable to the backend `.env` or Render dashboard:
+   ```env
+   RESEND_API_KEY=re_your_api_key
+   RESEND_FROM=onboarding@resend.dev   # Or your verified custom domain email
+   RESEND_FROM_NAME=AtomQuest          # Optional friendly sender name
+   ```
+3. When `RESEND_API_KEY` is present, emails will go out instantly via HTTPS.
+4. If the key is omitted, the system seamlessly falls back to standard **Nodemailer SMTP** using `EMAIL_USER` and `EMAIL_PASS` (perfect for local development / testing).
 
 ---
 

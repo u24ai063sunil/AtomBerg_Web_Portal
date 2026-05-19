@@ -2,21 +2,12 @@ const express = require('express');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('../utils/emailSender');
 const multer = require('multer');
 const path = require('path');
 const User = require('../models/User');
 const router = express.Router();
 const { authenticateJWT } = require('../middleware/auth');
-
-// Nodemailer Config
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
 
 // Multer Storage Config
 const storage = multer.diskStorage({
@@ -54,16 +45,12 @@ router.post('/signup', async (req, res) => {
 
         await user.save();
 
-        // Send Email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
+        // Send Email via Unified Sender (Resend / SMTP)
+        sendEmail({
             to: email,
             subject: 'AtomQuest - Verify Your Email',
             text: `Your verification code is: ${verificationCode}`
-        };
-        
-        // Non-blocking email send
-        transporter.sendMail(mailOptions).catch(err => console.error('Email send failed', err));
+        }).catch(err => console.error('Email send failed', err));
 
         res.status(201).json({ message: 'Signup successful. Please check your email for verification code.' });
     } catch (err) {
@@ -309,9 +296,13 @@ router.post('/request-manager', authenticateJWT, async (req, res) => {
         };
 
         try {
-            await transporter.sendMail(mailOptions);
+            await sendEmail({
+                to: adminEmails,
+                subject: `[AtomQuest] Reporting Manager Assignment Request - ${employee.name}`,
+                html: mailOptions.html
+            });
         } catch (mailErr) {
-            console.error('Failed to send manager request email via Nodemailer', mailErr);
+            console.error('Failed to send manager request email', mailErr);
         }
 
         res.json({ message: 'Request sent to administrators successfully', adminEmails });

@@ -1,20 +1,9 @@
-const nodemailer = require('nodemailer');
+const { sendEmail: unifiedSendEmail } = require('../utils/emailSender');
 const fetch = require('node-fetch'); // Assuming node-fetch is available, or use native fetch if Node 18+
-
-// In a real application, use actual SMTP credentials from .env
-const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER || 'no-reply@atomberg.com',
-    pass: process.env.EMAIL_PASS || 'mockpassword'
-  }
-});
 
 const sendEmail = async (to, subject, html) => {
   try {
-    console.log(`[EMAIL DISPATCH] To: ${to} | Subject: ${subject}`);
-    // await transporter.sendMail({ from: process.env.EMAIL_USER || 'no-reply@atomberg.com', to, subject, html });
-    // Commented out to prevent actual sending during dev without valid creds
+    await unifiedSendEmail({ to, subject, html });
   } catch (error) {
     console.error('Email Dispatch Error:', error);
   }

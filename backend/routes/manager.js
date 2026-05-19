@@ -259,14 +259,7 @@ router.post('/send-report', async (req, res) => {
             };
         }));
 
-        const nodemailer = require('nodemailer');
-        const transporter = nodemailer.createTransport({
-            service: process.env.EMAIL_SERVICE || 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
+        const { sendEmail } = require('../utils/emailSender');
 
         // Find admins to send report to
         const admins = await User.find({ role: 'ADMIN' });
@@ -326,7 +319,11 @@ router.post('/send-report', async (req, res) => {
             `
         };
 
-        await transporter.sendMail(mailOptions);
+        await sendEmail({
+            to: adminEmails,
+            subject: `[AtomQuest] Team Goals Report from Manager ${req.user.name}`,
+            html: mailOptions.html
+        });
         res.json({ success: true, message: 'Report successfully sent to Admin/HR team!' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
