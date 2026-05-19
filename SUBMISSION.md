@@ -54,6 +54,26 @@ graph TD
     B -->|Verify Ticket| D
     B -->|Trigger Events| E
 ```
+### 🔄 End-to-End Goal Cascade Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin
+    actor Manager
+    actor Employee
+
+    Admin->>SharedGoal: Create Corporate OKR Target
+    SharedGoal-->>Manager: Cascade OKR to Department
+    Manager->>Employee: Push Aligned shared target
+    Employee->>GoalSheet: Create Sheet & Align Individual Goals
+    Employee->>GoalSheet: Validate Rules (Weightage = 100%, Max 8 Goals)
+    Employee->>GoalSheet: Submit for Approval
+    Manager->>GoalSheet: Review (Approve or Return for Rework)
+    GoalSheet-->>Employee: Email / Slack Notification Sent
+    Note over Employee, Manager: Goal Sheet Locked Post-Approval
+```
+---
 
 ### 🔍 Architectural Layer & Data Flow Breakdown
 
@@ -89,27 +109,6 @@ To evaluate this:
 3. When `RESEND_API_KEY` is present, emails will go out instantly via HTTPS.
 4. If the key is omitted, the system seamlessly falls back to standard **Nodemailer SMTP** using `EMAIL_USER` and `EMAIL_PASS` (perfect for local development / testing).
 
----
-
-### 🔄 End-to-End Goal Cascade Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Admin
-    actor Manager
-    actor Employee
-
-    Admin->>SharedGoal: Create Corporate OKR Target
-    SharedGoal-->>Manager: Cascade OKR to Department
-    Manager->>Employee: Push Aligned shared target
-    Employee->>GoalSheet: Create Sheet & Align Individual Goals
-    Employee->>GoalSheet: Validate Rules (Weightage = 100%, Max 8 Goals)
-    Employee->>GoalSheet: Submit for Approval
-    Manager->>GoalSheet: Review (Approve or Return for Rework)
-    GoalSheet-->>Employee: Email / Slack Notification Sent
-    Note over Employee, Manager: Goal Sheet Locked Post-Approval
-```
 ---
 
 ## 🛣️ Step-by-Step User Journey Test Walkthroughs
