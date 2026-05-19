@@ -55,6 +55,28 @@ graph TD
     B -->|Trigger Events| E
 ```
 
+### 🔍 Architectural Layer & Data Flow Breakdown
+
+#### **1. Client-Side Presentation Layer (Vite + React SPA — Hosted on Vercel)**
+*   **Modular Component Architecture**: Decoupled, reusable components (e.g., glassmorphic cards, sidebar layouts) integrated with **Lucide Icons** and styled using **Vanilla CSS Variables** to guarantee low asset bundle footprints and pixel-perfect design consistency.
+*   **State & Session Governance**: Leverages the **React Context API** (`AuthContext`) to maintain unified state, handle secure login sessions, and dynamically enforce frontend route-guarding based on active user roles (Employee, Manager, Admin).
+*   **Production Hosting**: Optimized statically and deployed to **Vercel** with clean route fallbacks (`vercel.json`) to prevent Single Page Application (SPA) reload 404 errors.
+
+#### **2. API Gateway & Controller Layer (Node.js + Express — Hosted on Render)**
+*   **Stateless REST Endpoints**: Routes requests securely using an organized Controller-Service pattern, protected by authentication and RBAC middleware.
+*   **Decoupled Dual Authentication**: Intercepts credentials using a secure **JSON Web Token (JWT)** session pipeline, while allowing one-click **Google OAuth 2.0 Single Sign-On (SSO)** for corporate authentication compliance.
+*   **Automated Audit Logging**: Dynamic pre-routing middleware automatically intercepts administrative modifications, logging exception triggers and status alterations to an immutable database collection.
+
+#### **3. Database & Storage Layer (MongoDB Atlas Cluster)**
+*   **Structured Schemas & Relations**: Utilizes **Mongoose ODM** to enforce validation parameters, dynamic relation population (e.g., direct reportees referencing their active manager), and complex nested objects (e.g., employee gamification badge cabinets).
+*   **Optimized Indexing**: Employs unique sparse compound indexes (e.g., ensuring a goal cannot have duplicate quarterly entries per cycle) to guarantee data integrity under high concurrent loads.
+
+#### **4. External Services & Alert Integrations**
+*   **Transactional SMTP Mailing**: Real-time nodemailer alerts notify employees immediately when their manager changes their sheet status (e.g., Approvals or requests for Rework).
+*   **Resilient Webhook Hub**: Asynchronous notifier sending instant corporate updates (e.g., active cycle adjustments or major cascaded targets) to central **Slack channels** to encourage organization-wide transparency.
+
+---
+
 ### 🔄 End-to-End Goal Cascade Flow
 
 ```mermaid
